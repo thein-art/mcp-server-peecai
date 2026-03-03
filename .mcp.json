@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "peecai": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "PEECAI_API_KEY": "${PEECAI_API_KEY}",
+        "PEECAI_PROJECT_ID": "${PEECAI_PROJECT_ID}"
+      }
+    }
+  }
+}

@@ -1,0 +1,185 @@
+/** Standard Peec.ai API envelope — most list/report endpoints wrap results in `{ data: T }`. */
+export interface ApiResponse<T> {
+  data: T;
+}
+
+/** A Peec.ai project representing a tracked brand or campaign. */
+export interface Project {
+  id: string;
+  name: string;
+  status: ProjectStatus;
+}
+
+export type ProjectStatus =
+  | "CUSTOMER"
+  | "CUSTOMER_ENDED"
+  | "PITCH"
+  | "PITCH_ENDED"
+  | "TRIAL"
+  | "TRIAL_ENDED"
+  | "ONBOARDING"
+  | "DELETED";
+
+/** A brand being tracked within a project, with its associated domains. */
+export interface Brand {
+  id: string;
+  name: string;
+  domains?: string[];
+}
+
+export interface PromptMessage {
+  content: string;
+}
+
+/** A search prompt that Peec.ai monitors across AI models. */
+export interface Prompt {
+  id: string;
+  messages: PromptMessage[];
+  tags: DimensionRef[];
+  topic: DimensionRef | null;
+  user_location: { country: string };
+  /** Estimated monthly search volume. */
+  volume?: number;
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+}
+
+export interface Topic {
+  id: string;
+  name: string;
+}
+
+/** An AI model tracked by Peec.ai (e.g. ChatGPT, Perplexity). */
+export interface Model {
+  id: string;
+  is_active: boolean;
+}
+
+/** Summary of a single AI chat interaction. */
+export interface Chat {
+  id: string;
+  prompt: DimensionRef;
+  model: DimensionRef;
+  date: string;
+}
+
+/** A source URL cited in an AI chat response. */
+export interface ChatSource {
+  url: string;
+  /** Normalized URL for deduplication; null if normalization was not possible. */
+  urlNormalized: string | null;
+  domain: string;
+  citationCount: number;
+}
+
+export interface ChatBrandMentioned {
+  id: string;
+  name: string;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatProduct {
+  name: string;
+  queries: string[];
+}
+
+/** Full content of an AI chat including sources, brands, messages, and extracted products. */
+export interface ChatContent {
+  id: string;
+  prompt: DimensionRef;
+  model: DimensionRef;
+  sources: ChatSource[];
+  brands_mentioned: ChatBrandMentioned[];
+  messages: ChatMessage[];
+  queries: string[];
+  products: ChatProduct[];
+}
+
+/** Lightweight reference to a dimension entity (prompt, model, tag, or topic) by ID. */
+export interface DimensionRef {
+  id: string;
+}
+
+/** Brand analytics row from the /reports/brands endpoint. */
+export interface BrandReportRow {
+  brand: { id: string; name: string };
+  prompt?: DimensionRef;
+  model?: DimensionRef;
+  tag?: DimensionRef;
+  topic?: DimensionRef;
+  /** Ratio 0–1: visibility_count / visibility_total. */
+  visibility: number;
+  visibility_count: number;
+  visibility_total: number;
+  /** Sentiment score 0–100 (50 = neutral). Absent when no sentiment data. */
+  sentiment?: number;
+  sentiment_sum?: number;
+  sentiment_count?: number;
+  /** Average position when mentioned (lower = better). Absent when no position data. */
+  position?: number;
+  position_sum?: number;
+  position_count?: number;
+}
+
+export type DomainClassification =
+  | "UGC"
+  | "CORPORATE"
+  | "EDITORIAL"
+  | "INSTITUTIONAL"
+  | "OTHER"
+  | "REFERENCE"
+  | "COMPETITOR"
+  | "OWN";
+
+export type UrlClassification =
+  | "HOMEPAGE"
+  | "CATEGORY_PAGE"
+  | "PRODUCT_PAGE"
+  | "LISTICLE"
+  | "COMPARISON"
+  | "PROFILE"
+  | "ALTERNATIVE"
+  | "DISCUSSION"
+  | "HOW_TO_GUIDE"
+  | "ARTICLE"
+  | "OTHER";
+
+/** Domain analytics row from the /reports/domains endpoint. */
+export interface DomainReportRow {
+  domain: string;
+  classification: DomainClassification | null;
+  prompt?: DimensionRef;
+  model?: DimensionRef;
+  tag?: DimensionRef;
+  topic?: DimensionRef;
+  /** Share of chats citing this domain (0–1). */
+  usage_rate?: number;
+  /** Average number of citations per chat. */
+  citation_avg: number;
+}
+
+/** URL analytics row from the /reports/urls endpoint. */
+export interface UrlReportRow {
+  url: string;
+  /** Normalized URL for deduplication; null if normalization was not possible. */
+  urlNormalized: string | null;
+  classification: UrlClassification | null;
+  title: string | null;
+  prompt?: DimensionRef;
+  model?: DimensionRef;
+  tag?: DimensionRef;
+  topic?: DimensionRef;
+  /** Number of chats citing this URL. */
+  usage_count: number;
+  /** Total citation count across all chats. */
+  citation_count: number;
+  /** Average citations per chat. */
+  citation_avg: number;
+}
