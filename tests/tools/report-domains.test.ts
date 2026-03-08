@@ -37,19 +37,28 @@ describe("get_domains_report tool", () => {
     expect(parsed.rows[1]).not.toHaveProperty("classification");
   });
 
-  it("filters by classification", async () => {
+  it("sends classification as server-side filter", async () => {
     const { client, server } = setup();
-    const apiData = [
-      { domain: "own.com", classification: "OWN", usage_rate: 0.6, citation_avg: 3.0 },
-      { domain: "other.com", classification: "EDITORIAL", usage_rate: 0.3, citation_avg: 1.0 },
-    ];
-    vi.spyOn(client, "post").mockResolvedValue(apiData);
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
 
     const handler = getHandler(server, "get_domains_report");
-    const result = await handler({ project_id: VALID_PID, classification: "OWN", limit: 100, offset: 0 });
-    const parsed = JSON.parse(result.content[0].text);
+    await handler({ project_id: VALID_PID, classification: "OWN", limit: 100, offset: 0 });
 
-    expect(parsed.rows).toHaveLength(1);
-    expect(parsed.rows[0].domain).toBe("own.com");
+    expect(postSpy).toHaveBeenCalledWith("/reports/domains", expect.objectContaining({
+      filters: [{ field: "classification", operator: "in", values: ["OWN"] }],
+    }));
+  });
+
+  it("passes explicit filters to API", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_domains_report");
+    const filters = [{ field: "domain", operator: "in", values: ["example.com"] }];
+    await handler({ project_id: VALID_PID, filters, limit: 100, offset: 0 });
+
+    expect(postSpy).toHaveBeenCalledWith("/reports/domains", expect.objectContaining({
+      filters: [{ field: "domain", operator: "in", values: ["example.com"] }],
+    }));
   });
 });

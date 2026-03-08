@@ -1,6 +1,39 @@
 import { z } from "zod";
 import type { BrandReportRow, DomainReportRow, UrlReportRow } from "./types.js";
 
+/** Server-side filter for analytics report endpoints. */
+export interface ReportFilter {
+  field: string;
+  operator: "in" | "not_in";
+  values: string[];
+}
+
+/**
+ * Creates a Zod schema for server-side report filters.
+ * Only allows fields valid for the specific report type.
+ */
+export function filterSchema(allowedFields: readonly string[]) {
+  return z.array(z.object({
+    field: z.enum(allowedFields as [string, ...string[]]),
+    operator: z.enum(["in", "not_in"]),
+    values: z.array(z.string()).min(1),
+  })).describe("Server-side filters. Multiple filters are AND'd together.");
+}
+
+/** Merges convenience shortcut parameters into a filters array. */
+export function mergeFilters(
+  filters: ReportFilter[] | undefined,
+  ...shortcuts: Array<{ field: string; value: string | undefined }>
+): ReportFilter[] | undefined {
+  const merged: ReportFilter[] = filters ? [...filters] : [];
+  for (const { field, value } of shortcuts) {
+    if (value !== undefined) {
+      merged.push({ field, operator: "in", values: [value] });
+    }
+  }
+  return merged.length > 0 ? merged : undefined;
+}
+
 /** YYYY-MM-DD date string validated by regex. */
 export const dateSchema = z
   .string()
@@ -82,7 +115,7 @@ const BRAND_RAW_FIELDS = new Set([
  * - Flattens dimension refs: `{ prompt: { id: "x" } }` → `{ prompt_id: "x" }`
  * - BrandReportRow: flattens `brand: {id, name}` → `brand_id` + `brand_name`, drops raw sum/count fields
  * - DomainReportRow: drops `classification: null`
- * - UrlReportRow: drops `urlNormalized: null`, `title: null`
+ * - UrlReportRow: drops `title: null`
  */
 type ReportRow = BrandReportRow | DomainReportRow | UrlReportRow;
 
@@ -108,8 +141,8 @@ export function slimReportRows(rows: ReportRow[]): Record<string, unknown>[] {
       // Drop brand raw sum/count fields
       if (BRAND_RAW_FIELDS.has(key)) continue;
 
-      // Drop null values for classification, urlNormalized, title
-      if (value === null && (key === "classification" || key === "urlNormalized" || key === "title")) continue;
+      // Drop null values for classification, title
+      if (value === null && (key === "classification" || key === "title")) continue;
 
       out[key] = value;
     }
@@ -125,14 +158,17 @@ export function summaryForList(entity: string, items: unknown[]): string {
   return `${items.length} ${entity} returned`;
 }
 
-/** Summary for brand report: "5 brands, top 'BrandX' 82% visibility" */
+/** Summary for brand report: "5 brands, top 'BrandX' 82% visibility, 45% SoV" */
 export function summaryForBrandsReport(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "0 brand rows returned";
   const top = rows.reduce((best, r) =>
     (r.visibility as number) > (best.visibility as number) ? r : best
   );
   const pct = Math.round((top.visibility as number) * 100);
-  return `${rows.length} brand rows, top '${top.brand_name}' ${pct}% visibility`;
+  const sov = top.share_of_voice !== undefined
+    ? `, ${Math.round((top.share_of_voice as number) * 100)}% SoV`
+    : "";
+  return `${rows.length} brand rows, top '${top.brand_name}' ${pct}% visibility${sov}`;
 }
 
 /** Summary for domain report: "12 domains, top 'example.com' 45% usage" */

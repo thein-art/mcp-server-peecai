@@ -24,7 +24,6 @@ describe("get_urls_report tool", () => {
     const apiData = [
       {
         url: "https://example.com/article",
-        urlNormalized: null,
         classification: "ARTICLE",
         title: "Test Article",
         usage_count: 8,
@@ -40,25 +39,34 @@ describe("get_urls_report tool", () => {
 
     expect(parsed._summary).toBe("1 URL rows, top 'https://example.com/article' 15 citations");
     expect(parsed.rows).toHaveLength(1);
-    // null urlNormalized should be dropped
+    // no urlNormalized field at all
     expect(parsed.rows[0]).not.toHaveProperty("urlNormalized");
     // non-null title should be kept
     expect(parsed.rows[0].title).toBe("Test Article");
   });
 
-  it("filters by classification", async () => {
+  it("sends classification as server-side filter", async () => {
     const { client, server } = setup();
-    const apiData = [
-      { url: "https://a.com", urlNormalized: null, classification: "ARTICLE", title: null, usage_count: 5, citation_count: 10, citation_avg: 2.0 },
-      { url: "https://b.com", urlNormalized: null, classification: "HOMEPAGE", title: null, usage_count: 3, citation_count: 6, citation_avg: 2.0 },
-    ];
-    vi.spyOn(client, "post").mockResolvedValue(apiData);
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
 
     const handler = getHandler(server, "get_urls_report");
-    const result = await handler({ project_id: VALID_PID, classification: "ARTICLE", limit: 100, offset: 0 });
-    const parsed = JSON.parse(result.content[0].text);
+    await handler({ project_id: VALID_PID, classification: "ARTICLE", limit: 100, offset: 0 });
 
-    expect(parsed.rows).toHaveLength(1);
-    expect(parsed.rows[0].url).toBe("https://a.com");
+    expect(postSpy).toHaveBeenCalledWith("/reports/urls", expect.objectContaining({
+      filters: [{ field: "classification", operator: "in", values: ["ARTICLE"] }],
+    }));
+  });
+
+  it("passes explicit filters to API", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_urls_report");
+    const filters = [{ field: "domain", operator: "in", values: ["example.com"] }];
+    await handler({ project_id: VALID_PID, filters, limit: 100, offset: 0 });
+
+    expect(postSpy).toHaveBeenCalledWith("/reports/urls", expect.objectContaining({
+      filters: [{ field: "domain", operator: "in", values: ["example.com"] }],
+    }));
   });
 });

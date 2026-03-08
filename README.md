@@ -196,6 +196,25 @@ All tools are read-only GET/POST queries against the Peec.ai API. No data is mod
 | `PEECAI_API_KEY` | Yes | API key from [app.peec.ai](https://app.peec.ai/api-keys) |
 | `PEECAI_PROJECT_ID` | No | Default project ID — saves repeating it in every tool call |
 
+## API Drift Detection
+
+The Peec.ai API is in beta and may change. A drift detection script compares the live OpenAPI spec against a committed snapshot:
+
+```bash
+npm run check:api-drift
+```
+
+- **No drift**: exit code 0, snapshot is current
+- **Drift detected**: exit code 1, shows a diff of changes
+
+When drift is detected:
+1. Review the diff to understand what changed
+2. Update the snapshot: `curl -s https://api.peec.ai/customer/v1/openapi/json -o api-spec/openapi-snapshot.json`
+3. Update `src/types.ts` and tools as needed
+4. Run tests to verify
+
+No API key is required — the OpenAPI spec is publicly accessible.
+
 ## Development
 
 ### Prerequisites

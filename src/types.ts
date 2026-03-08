@@ -73,11 +73,15 @@ export interface ChatSource {
   urlNormalized: string | null;
   domain: string;
   citationCount: number;
+  /** Position of this citation in the response (1-based). */
+  citationPosition: number;
 }
 
 export interface ChatBrandMentioned {
   id: string;
   name: string;
+  /** Position of this brand mention in the response (1-based). */
+  position: number;
 }
 
 export interface ChatMessage {
@@ -118,6 +122,10 @@ export interface BrandReportRow {
   visibility: number;
   visibility_count: number;
   visibility_total: number;
+  /** Share of voice 0–1: proportion of total brand mentions. */
+  share_of_voice: number;
+  /** Number of times this brand was mentioned. */
+  mention_count: number;
   /** Sentiment score 0–100 (50 = neutral). Absent when no sentiment data. */
   sentiment?: number;
   sentiment_sum?: number;
@@ -168,9 +176,7 @@ export interface DomainReportRow {
 /** URL analytics row from the /reports/urls endpoint. */
 export interface UrlReportRow {
   url: string;
-  /** Normalized URL for deduplication; null if normalization was not possible. */
-  urlNormalized: string | null;
-  classification: UrlClassification | null;
+  classification: UrlClassification;
   title: string | null;
   prompt?: DimensionRef;
   model?: DimensionRef;

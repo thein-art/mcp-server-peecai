@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { requireProjectId, validateDateRange, dateSchema, dimensionsSchema, slimReportRows, summaryForList, summaryForBrandsReport, summaryForDomainsReport, summaryForUrlsReport, toolResult, toolError } from "./util.js";
+import { requireProjectId, validateDateRange, dateSchema, dimensionsSchema, filterSchema, mergeFilters, slimReportRows, summaryForList, summaryForBrandsReport, summaryForDomainsReport, summaryForUrlsReport, toolResult, toolError } from "./util.js";
 
 describe("requireProjectId", () => {
   const VALID_ID = "or_575e262d-2fe5-4ac5-9f0a-0c7553558be2";
@@ -150,6 +150,84 @@ describe("dimensionsSchema", () => {
   });
 });
 
+describe("filterSchema", () => {
+  const schema = filterSchema(["model_id", "brand_id", "prompt_id"]);
+
+  it("accepts valid filters", () => {
+    const result = schema.parse([
+      { field: "model_id", operator: "in", values: ["m1", "m2"] },
+    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0].field).toBe("model_id");
+  });
+
+  it("accepts not_in operator", () => {
+    const result = schema.parse([
+      { field: "brand_id", operator: "not_in", values: ["b1"] },
+    ]);
+    expect(result[0].operator).toBe("not_in");
+  });
+
+  it("accepts multiple filters", () => {
+    const result = schema.parse([
+      { field: "model_id", operator: "in", values: ["m1"] },
+      { field: "prompt_id", operator: "not_in", values: ["p1", "p2"] },
+    ]);
+    expect(result).toHaveLength(2);
+  });
+
+  it("rejects unknown field names", () => {
+    expect(() => schema.parse([
+      { field: "unknown_field", operator: "in", values: ["x"] },
+    ])).toThrow();
+  });
+
+  it("rejects invalid operator", () => {
+    expect(() => schema.parse([
+      { field: "model_id", operator: "equals", values: ["x"] },
+    ])).toThrow();
+  });
+
+  it("rejects empty values array", () => {
+    expect(() => schema.parse([
+      { field: "model_id", operator: "in", values: [] },
+    ])).toThrow();
+  });
+
+  it("accepts empty filters array", () => {
+    expect(schema.parse([])).toEqual([]);
+  });
+});
+
+describe("mergeFilters", () => {
+  it("returns undefined when no filters and no shortcuts", () => {
+    expect(mergeFilters(undefined)).toBeUndefined();
+  });
+
+  it("returns undefined when shortcuts have no values", () => {
+    expect(mergeFilters(undefined, { field: "brand_id", value: undefined })).toBeUndefined();
+  });
+
+  it("creates filter from shortcut", () => {
+    const result = mergeFilters(undefined, { field: "brand_id", value: "br_1" });
+    expect(result).toEqual([{ field: "brand_id", operator: "in", values: ["br_1"] }]);
+  });
+
+  it("merges shortcut with existing filters", () => {
+    const existing = [{ field: "model_id", operator: "in" as const, values: ["m1"] }];
+    const result = mergeFilters(existing, { field: "brand_id", value: "br_1" });
+    expect(result).toHaveLength(2);
+    expect(result![0].field).toBe("model_id");
+    expect(result![1].field).toBe("brand_id");
+  });
+
+  it("passes through existing filters when no shortcuts", () => {
+    const existing = [{ field: "model_id", operator: "in" as const, values: ["m1"] }];
+    const result = mergeFilters(existing);
+    expect(result).toEqual(existing);
+  });
+});
+
 describe("slimReportRows", () => {
   it("flattens brand and removes raw count fields from BrandReportRow", () => {
     const input = [{
@@ -158,6 +236,8 @@ describe("slimReportRows", () => {
       visibility: 0.75,
       visibility_count: 3,
       visibility_total: 4,
+      share_of_voice: 0.45,
+      mention_count: 12,
       sentiment: 62,
       sentiment_sum: 186,
       sentiment_count: 3,
@@ -171,6 +251,8 @@ describe("slimReportRows", () => {
       brand_name: "Bronchicum",
       prompt_id: "pr_1",
       visibility: 0.75,
+      share_of_voice: 0.45,
+      mention_count: 12,
       sentiment: 62,
       position: 2.5,
     }]);
@@ -186,6 +268,8 @@ describe("slimReportRows", () => {
       visibility: 0.5,
       visibility_count: 1,
       visibility_total: 2,
+      share_of_voice: 0.3,
+      mention_count: 5,
     }];
     const result = slimReportRows(input);
     expect(result[0]).toMatchObject({
@@ -236,10 +320,9 @@ describe("slimReportRows", () => {
     expect(result[0]).not.toHaveProperty("prompt");
   });
 
-  it("drops null urlNormalized and title from UrlReportRow", () => {
+  it("drops null title from UrlReportRow", () => {
     const input = [{
       url: "https://example.com/page",
-      urlNormalized: null,
       classification: "ARTICLE",
       title: null,
       usage_count: 5,
@@ -256,10 +339,9 @@ describe("slimReportRows", () => {
     }]);
   });
 
-  it("keeps non-null urlNormalized and title", () => {
+  it("keeps non-null title", () => {
     const input = [{
       url: "https://example.com/page",
-      urlNormalized: "example.com/page",
       classification: "ARTICLE",
       title: "My Article",
       usage_count: 5,
@@ -267,7 +349,6 @@ describe("slimReportRows", () => {
       citation_avg: 2.0,
     }];
     const result = slimReportRows(input);
-    expect(result[0].urlNormalized).toBe("example.com/page");
     expect(result[0].title).toBe("My Article");
   });
 
@@ -281,12 +362,16 @@ describe("slimReportRows", () => {
       visibility: 0.5,
       visibility_count: 1,
       visibility_total: 2,
+      share_of_voice: 0.2,
+      mention_count: 3,
     }];
     const result = slimReportRows(input);
     expect(result).toEqual([{
       brand_id: "br_1",
       brand_name: "Test",
       visibility: 0.5,
+      share_of_voice: 0.2,
+      mention_count: 3,
     }]);
   });
 });
@@ -306,12 +391,12 @@ describe("summaryForList", () => {
 });
 
 describe("summaryForBrandsReport", () => {
-  it("returns summary with top brand", () => {
+  it("returns summary with top brand and SoV", () => {
     const rows = [
-      { brand_name: "Alpha", visibility: 0.82 },
-      { brand_name: "Beta", visibility: 0.45 },
+      { brand_name: "Alpha", visibility: 0.82, share_of_voice: 0.45 },
+      { brand_name: "Beta", visibility: 0.45, share_of_voice: 0.25 },
     ];
-    expect(summaryForBrandsReport(rows)).toBe("2 brand rows, top 'Alpha' 82% visibility");
+    expect(summaryForBrandsReport(rows)).toBe("2 brand rows, top 'Alpha' 82% visibility, 45% SoV");
   });
 
   it("handles empty array", () => {
@@ -319,8 +404,13 @@ describe("summaryForBrandsReport", () => {
   });
 
   it("rounds visibility percentage", () => {
-    const rows = [{ brand_name: "X", visibility: 0.666 }];
-    expect(summaryForBrandsReport(rows)).toBe("1 brand rows, top 'X' 67% visibility");
+    const rows = [{ brand_name: "X", visibility: 0.666, share_of_voice: 0.333 }];
+    expect(summaryForBrandsReport(rows)).toBe("1 brand rows, top 'X' 67% visibility, 33% SoV");
+  });
+
+  it("omits SoV when not present", () => {
+    const rows = [{ brand_name: "X", visibility: 0.5 }];
+    expect(summaryForBrandsReport(rows)).toBe("1 brand rows, top 'X' 50% visibility");
   });
 });
 
