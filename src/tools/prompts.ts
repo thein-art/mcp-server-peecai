@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, toolResult, toolError } from "../util.js";
+import { requireProjectId, summaryForList, toolResult, toolError } from "../util.js";
 import type { Prompt } from "../types.js";
 
 /** Registers the list_prompts tool for retrieving search prompts with metadata. */
@@ -21,7 +21,7 @@ export function registerPromptsTool(server: McpServer, client: PeecApiClient) {
           limit,
           offset,
         });
-        return toolResult(data);
+        return toolResult({ _summary: summaryForList("prompts", data), prompts: data });
       } catch (e) {
         return toolError(e);
       }

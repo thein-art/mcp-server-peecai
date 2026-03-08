@@ -18,7 +18,8 @@ export function registerChatContentTool(server: McpServer, client: PeecApiClient
         const data = await client.getRaw<ChatContent>(`/chats/${chat_id}/content`, {
           project_id: requireProjectId(project_id),
         });
-        return toolResult(data);
+        const _summary = `Chat ${chat_id}: ${data.messages.length} messages, ${data.sources.length} sources, ${data.brands_mentioned.length} brands`;
+        return toolResult({ _summary, chat: data });
       } catch (e) {
         return toolError(e);
       }

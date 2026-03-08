@@ -21,6 +21,8 @@ import { registerChatContentTool } from "./tools/chat-content.js";
 import { registerBrandsReportTool } from "./tools/report-brands.js";
 import { registerDomainsReportTool } from "./tools/report-domains.js";
 import { registerUrlsReportTool } from "./tools/report-urls.js";
+import { registerPromptTemplates } from "./prompts.js";
+import type { Project } from "./types.js";
 
 const apiKey = process.env.PEECAI_API_KEY;
 if (!apiKey) {
@@ -35,6 +37,7 @@ const server = new McpServer({
   version: "0.1.0",
 });
 
+// Register tools
 registerProjectsTool(server, client);
 registerBrandsTool(server, client);
 registerPromptsTool(server, client);
@@ -47,10 +50,37 @@ registerBrandsReportTool(server, client);
 registerDomainsReportTool(server, client);
 registerUrlsReportTool(server, client);
 
+// Register MCP prompts (guided workflows)
+registerPromptTemplates(server);
+
+// Register resource: projects://list
+server.resource("projects-list", "projects://list", {
+  description: "List all available Peec.ai projects for the authenticated account.",
+  mimeType: "application/json",
+}, async () => {
+  const projects = await client.get<Project[]>("/projects", { limit: 1000 });
+  return {
+    contents: [{
+      uri: "projects://list",
+      mimeType: "application/json",
+      text: JSON.stringify(projects),
+    }],
+  };
+});
+
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Peec.ai MCP server running on stdio");
+
+  // Graceful shutdown
+  const shutdown = async () => {
+    console.error("Shutting down Peec.ai MCP server…");
+    await server.close();
+    process.exit(0);
+  };
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 }
 
 main().catch((e) => {

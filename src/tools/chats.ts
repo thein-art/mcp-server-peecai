@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, dateSchema, validateDateRange, toolResult, toolError } from "../util.js";
+import { requireProjectId, dateSchema, validateDateRange, summaryForList, toolResult, toolError } from "../util.js";
 import type { Chat } from "../types.js";
 
 /** Registers the list_chats tool for retrieving AI chat interactions with optional date filtering. */
@@ -26,7 +26,7 @@ export function registerChatsTool(server: McpServer, client: PeecApiClient) {
           limit,
           offset,
         });
-        return toolResult(data);
+        return toolResult({ _summary: summaryForList("chats", data), chats: data });
       } catch (e) {
         return toolError(e);
       }

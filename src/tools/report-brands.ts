@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, dateSchema, dimensionsSchema, validateDateRange, slimReportRows, toolResult, toolError } from "../util.js";
+import { requireProjectId, dateSchema, dimensionsSchema, validateDateRange, slimReportRows, summaryForBrandsReport, toolResult, toolError } from "../util.js";
 import type { BrandReportRow } from "../types.js";
 
 /** Registers the get_brands_report tool for brand visibility, sentiment, and position analytics. */
@@ -34,7 +34,8 @@ export function registerBrandsReportTool(server: McpServer, client: PeecApiClien
 
         const data = await client.post<BrandReportRow[]>("/reports/brands", body);
         const filtered = brand_id ? data.filter(r => r.brand.id === brand_id) : data;
-        return toolResult(slimReportRows(filtered));
+        const rows = slimReportRows(filtered);
+        return toolResult({ _summary: summaryForBrandsReport(rows), rows });
       } catch (e) {
         return toolError(e);
       }

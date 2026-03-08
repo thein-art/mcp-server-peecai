@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, dateSchema, dimensionsSchema, validateDateRange, slimReportRows, toolResult, toolError } from "../util.js";
+import { requireProjectId, dateSchema, dimensionsSchema, validateDateRange, slimReportRows, summaryForUrlsReport, toolResult, toolError } from "../util.js";
 import type { UrlReportRow } from "../types.js";
 
 /** Registers the get_urls_report tool for URL classification, usage, and citation analytics. */
@@ -34,7 +34,8 @@ export function registerUrlsReportTool(server: McpServer, client: PeecApiClient)
 
         const data = await client.post<UrlReportRow[]>("/reports/urls", body);
         const filtered = classification ? data.filter(r => r.classification === classification) : data;
-        return toolResult(slimReportRows(filtered));
+        const rows = slimReportRows(filtered);
+        return toolResult({ _summary: summaryForUrlsReport(rows), rows });
       } catch (e) {
         return toolError(e);
       }

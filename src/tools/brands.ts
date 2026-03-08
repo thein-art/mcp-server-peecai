@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, toolResult, toolError } from "../util.js";
+import { requireProjectId, summaryForList, toolResult, toolError } from "../util.js";
 import type { Brand } from "../types.js";
 
 /** Registers the list_brands tool for retrieving tracked brands and their domains. */
@@ -21,7 +21,7 @@ export function registerBrandsTool(server: McpServer, client: PeecApiClient) {
           limit,
           offset,
         });
-        return toolResult(data);
+        return toolResult({ _summary: summaryForList("brands", data), brands: data });
       } catch (e) {
         return toolError(e);
       }

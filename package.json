@@ -5,16 +5,39 @@
   "type": "module",
   "license": "MIT",
   "author": "Tobias Hein (https://artaxo.com)",
+  "homepage": "https://github.com/thein-art/mcp-server-peecai#readme",
+  "bugs": {
+    "url": "https://github.com/thein-art/mcp-server-peecai/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/thein-art/mcp-server-peecai.git"
+    "url": "git+https://github.com/thein-art/mcp-server-peecai.git"
   },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "peecai",
+    "peec-ai",
+    "ai-search",
+    "brand-visibility",
+    "ai-analytics",
+    "chatgpt",
+    "perplexity",
+    "model-context-protocol"
+  ],
+  "bin": {
+    "mcp-server-peecai": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
@@ -27,5 +50,6 @@
   },
   "engines": {
     "node": ">=22.0.0"
-  }
+  },
+  "mcpName": "io.github.thein-art/peecai"
 }

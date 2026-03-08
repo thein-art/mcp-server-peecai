@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, dateSchema, dimensionsSchema, validateDateRange, slimReportRows, toolResult, toolError } from "../util.js";
+import { requireProjectId, dateSchema, dimensionsSchema, validateDateRange, slimReportRows, summaryForDomainsReport, toolResult, toolError } from "../util.js";
 import type { DomainReportRow } from "../types.js";
 
 /** Registers the get_domains_report tool for domain classification, usage, and citation analytics. */
@@ -34,7 +34,8 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
 
         const data = await client.post<DomainReportRow[]>("/reports/domains", body);
         const filtered = classification ? data.filter(r => r.classification === classification) : data;
-        return toolResult(slimReportRows(filtered));
+        const rows = slimReportRows(filtered);
+        return toolResult({ _summary: summaryForDomainsReport(rows), rows });
       } catch (e) {
         return toolError(e);
       }

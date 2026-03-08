@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { toolResult, toolError } from "../util.js";
+import { summaryForList, toolResult, toolError } from "../util.js";
 import type { Project } from "../types.js";
 
 /** Registers the list_projects tool for retrieving all company projects. */
@@ -16,7 +16,7 @@ export function registerProjectsTool(server: McpServer, client: PeecApiClient) {
     async ({ limit, offset }) => {
       try {
         const data = await client.get<Project[]>("/projects", { limit, offset });
-        return toolResult(data);
+        return toolResult({ _summary: summaryForList("projects", data), projects: data });
       } catch (e) {
         return toolError(e);
       }

@@ -1,0 +1,22 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - peecaiApiKey
+    properties:
+      peecaiApiKey:
+        type: string
+        description: "Peec.ai API key"
+      peecaiProjectId:
+        type: string
+        description: "Default Peec.ai project ID (optional)"
+  commandFunction: |-
+    (config) => ({
+      command: 'node',
+      args: ['dist/index.js'],
+      env: {
+        PEECAI_API_KEY: config.peecaiApiKey,
+        ...(config.peecaiProjectId ? { PEECAI_PROJECT_ID: config.peecaiProjectId } : {})
+      }
+    })

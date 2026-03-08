@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { requireProjectId, validateDateRange, dateSchema, dimensionsSchema, slimReportRows, toolResult, toolError } from "./util.js";
+import { requireProjectId, validateDateRange, dateSchema, dimensionsSchema, slimReportRows, summaryForList, summaryForBrandsReport, summaryForDomainsReport, summaryForUrlsReport, toolResult, toolError } from "./util.js";
 
 describe("requireProjectId", () => {
   const VALID_ID = "or_575e262d-2fe5-4ac5-9f0a-0c7553558be2";
@@ -288,6 +288,72 @@ describe("slimReportRows", () => {
       brand_name: "Test",
       visibility: 0.5,
     }]);
+  });
+});
+
+describe("summaryForList", () => {
+  it("returns count and entity name", () => {
+    expect(summaryForList("projects", [1, 2, 3])).toBe("3 projects returned");
+  });
+
+  it("handles empty array", () => {
+    expect(summaryForList("brands", [])).toBe("0 brands returned");
+  });
+
+  it("handles single item", () => {
+    expect(summaryForList("chats", [{}])).toBe("1 chats returned");
+  });
+});
+
+describe("summaryForBrandsReport", () => {
+  it("returns summary with top brand", () => {
+    const rows = [
+      { brand_name: "Alpha", visibility: 0.82 },
+      { brand_name: "Beta", visibility: 0.45 },
+    ];
+    expect(summaryForBrandsReport(rows)).toBe("2 brand rows, top 'Alpha' 82% visibility");
+  });
+
+  it("handles empty array", () => {
+    expect(summaryForBrandsReport([])).toBe("0 brand rows returned");
+  });
+
+  it("rounds visibility percentage", () => {
+    const rows = [{ brand_name: "X", visibility: 0.666 }];
+    expect(summaryForBrandsReport(rows)).toBe("1 brand rows, top 'X' 67% visibility");
+  });
+});
+
+describe("summaryForDomainsReport", () => {
+  it("returns summary with top domain", () => {
+    const rows = [
+      { domain: "example.com", usage_rate: 0.45 },
+      { domain: "test.org", usage_rate: 0.12 },
+    ];
+    expect(summaryForDomainsReport(rows)).toBe("2 domain rows, top 'example.com' 45% usage");
+  });
+
+  it("handles empty array", () => {
+    expect(summaryForDomainsReport([])).toBe("0 domain rows returned");
+  });
+
+  it("handles missing usage_rate", () => {
+    const rows = [{ domain: "example.com" }];
+    expect(summaryForDomainsReport(rows)).toBe("1 domain rows, top 'example.com' 0% usage");
+  });
+});
+
+describe("summaryForUrlsReport", () => {
+  it("returns summary with top URL", () => {
+    const rows = [
+      { url: "https://example.com/a", citation_count: 15 },
+      { url: "https://example.com/b", citation_count: 5 },
+    ];
+    expect(summaryForUrlsReport(rows)).toBe("2 URL rows, top 'https://example.com/a' 15 citations");
+  });
+
+  it("handles empty array", () => {
+    expect(summaryForUrlsReport([])).toBe("0 URL rows returned");
   });
 });
 

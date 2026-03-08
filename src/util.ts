@@ -118,6 +118,42 @@ export function slimReportRows(rows: ReportRow[]): Record<string, unknown>[] {
   });
 }
 
+// ── Summary helpers for LLM-friendly _summary fields ──
+
+/** Summary for list endpoints: "3 projects returned" */
+export function summaryForList(entity: string, items: unknown[]): string {
+  return `${items.length} ${entity} returned`;
+}
+
+/** Summary for brand report: "5 brands, top 'BrandX' 82% visibility" */
+export function summaryForBrandsReport(rows: Record<string, unknown>[]): string {
+  if (rows.length === 0) return "0 brand rows returned";
+  const top = rows.reduce((best, r) =>
+    (r.visibility as number) > (best.visibility as number) ? r : best
+  );
+  const pct = Math.round((top.visibility as number) * 100);
+  return `${rows.length} brand rows, top '${top.brand_name}' ${pct}% visibility`;
+}
+
+/** Summary for domain report: "12 domains, top 'example.com' 45% usage" */
+export function summaryForDomainsReport(rows: Record<string, unknown>[]): string {
+  if (rows.length === 0) return "0 domain rows returned";
+  const top = rows.reduce((best, r) =>
+    ((r.usage_rate as number) ?? 0) > ((best.usage_rate as number) ?? 0) ? r : best
+  );
+  const pct = Math.round(((top.usage_rate as number) ?? 0) * 100);
+  return `${rows.length} domain rows, top '${top.domain}' ${pct}% usage`;
+}
+
+/** Summary for URL report: "8 URLs, top 'example.com/page' 15 citations" */
+export function summaryForUrlsReport(rows: Record<string, unknown>[]): string {
+  if (rows.length === 0) return "0 URL rows returned";
+  const top = rows.reduce((best, r) =>
+    (r.citation_count as number) > (best.citation_count as number) ? r : best
+  );
+  return `${rows.length} URL rows, top '${top.url}' ${top.citation_count} citations`;
+}
+
 /** Formats a successful MCP tool response with compact JSON to minimize token usage. */
 export function toolResult(data: unknown) {
   return {
