@@ -71,8 +71,9 @@ export function requireProjectId(explicit?: string): string {
     );
   }
   if (!PROJECT_ID_PATTERN.test(pid)) {
+    const safe = pid.length > 60 ? pid.slice(0, 60) + "…" : pid;
     throw new Error(
-      `Invalid project_id format: "${pid}". Expected format: or_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. Use list_projects to find valid project IDs.`
+      `Invalid project_id format: "${safe}". Expected format: or_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. Use list_projects to find valid project IDs.`
     );
   }
   return pid;
