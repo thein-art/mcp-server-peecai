@@ -143,7 +143,7 @@ In Claude Code, run `/mcp` to confirm the `peecai` server is connected.
 
 ### Analytics Reports
 
-All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `model_id`, `tag_id`, `topic_id`. Date filtering via `start_date` / `end_date` (YYYY-MM-DD).
+All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `model_id`, `tag_id`, `topic_id`. Date filtering via `start_date` / `end_date` (YYYY-MM-DD). All report tools also accept a `filters` parameter for server-side filtering (`field`, `operator: "in" | "not_in"`, `values`). Convenience shortcuts `brand_id` / `classification` remain available.
 
 **`get_brands_report`** — Brand analytics per brand.
 
@@ -152,6 +152,8 @@ All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `
 | `visibility` | Ratio 0–1 (visibility_count / visibility_total) |
 | `sentiment` | Score 0–100, 50 = neutral |
 | `position` | Average rank when mentioned, lower = better |
+| `share_of_voice` | Share of voice 0–1 (proportion of total mentions) |
+| `mention_count` | Number of times the brand was mentioned |
 
 **`get_domains_report`** — Domain-level analytics.
 
@@ -230,6 +232,7 @@ npm run build        # Compile TypeScript to dist/
 npm run dev          # Watch mode — recompile on changes
 npm test             # Run tests
 npm run test:watch   # Run tests in watch mode
+npm run check:api-drift  # Check for API spec changes
 ```
 
 ### Project Structure
@@ -240,6 +243,7 @@ src/
 ├── api-client.ts     # HTTP client for Peec.ai Customer API
 ├── types.ts          # TypeScript interfaces for API responses
 ├── util.ts           # Shared validation, date handling, MCP response helpers
+├── prompts.ts        # MCP prompt templates (guided workflows)
 └── tools/            # One file per MCP tool
     ├── projects.ts
     ├── brands.ts
@@ -252,6 +256,10 @@ src/
     ├── report-brands.ts
     ├── report-domains.ts
     └── report-urls.ts
+scripts/              # Development and CI scripts
+└── check-api-drift.sh
+api-spec/             # API specification snapshots
+└── openapi-snapshot.json
 ```
 
 ## License

@@ -1,6 +1,6 @@
 {
   "name": "mcp-server-peecai",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Community MCP server for the Peec.ai API - AI Search Analytics",
   "type": "module",
   "license": "MIT",
