@@ -28,7 +28,7 @@ describe("list_brands tool", () => {
     const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
     const parsed = JSON.parse(result.content[0].text);
 
-    expect(parsed._summary).toBe("1 brands returned");
+    expect(parsed._summary).toBe("1 brand returned");
     expect(parsed.brands).toHaveLength(1);
   });
 });

@@ -128,6 +128,18 @@ describe("dateSchema", () => {
   it("rejects date with time", () => {
     expect(() => dateSchema.parse("2026-01-15T00:00:00")).toThrow();
   });
+
+  it("rejects invalid calendar date like month 13", () => {
+    expect(() => dateSchema.parse("2026-13-01")).toThrow();
+  });
+
+  it("rejects invalid calendar date like day 32", () => {
+    expect(() => dateSchema.parse("2026-01-32")).toThrow();
+  });
+
+  it("rejects Feb 30", () => {
+    expect(() => dateSchema.parse("2026-02-30")).toThrow();
+  });
 });
 
 describe("dimensionsSchema", () => {
@@ -225,6 +237,13 @@ describe("mergeFilters", () => {
     const existing = [{ field: "model_id", operator: "in" as const, values: ["m1"] }];
     const result = mergeFilters(existing);
     expect(result).toEqual(existing);
+  });
+
+  it("skips shortcut when field already exists in filters", () => {
+    const existing = [{ field: "brand_id", operator: "not_in" as const, values: ["b1"] }];
+    const result = mergeFilters(existing, { field: "brand_id", value: "b2" });
+    expect(result).toHaveLength(1);
+    expect(result![0].operator).toBe("not_in");
   });
 });
 
@@ -385,8 +404,8 @@ describe("summaryForList", () => {
     expect(summaryForList("brands", [])).toBe("0 brands returned");
   });
 
-  it("handles single item", () => {
-    expect(summaryForList("chats", [{}])).toBe("1 chats returned");
+  it("handles single item with singular form", () => {
+    expect(summaryForList("chats", [{}])).toBe("1 chat returned");
   });
 });
 
@@ -475,10 +494,10 @@ describe("toolError", () => {
     });
   });
 
-  it("returns 'Unknown error' for non-Error values", () => {
+  it("stringifies non-Error values", () => {
     const result = toolError("string error");
     expect(result).toEqual({
-      content: [{ type: "text", text: "Unknown error" }],
+      content: [{ type: "text", text: "string error" }],
       isError: true,
     });
   });

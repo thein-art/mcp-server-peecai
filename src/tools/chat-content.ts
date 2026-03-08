@@ -10,7 +10,7 @@ export function registerChatContentTool(server: McpServer, client: PeecApiClient
     "get_chat_content",
     "Get full content of a specific AI chat. Returns sources, brands mentioned, messages, queries, and products.",
     {
-      chat_id: z.string().regex(/^[\w-]+$/, "Invalid chat_id format").describe("Chat ID to retrieve"),
+      chat_id: z.string().max(200).regex(/^[\w-]+$/, "Invalid chat_id format").describe("Chat ID to retrieve"),
       project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
     },
     async ({ chat_id, project_id }) => {

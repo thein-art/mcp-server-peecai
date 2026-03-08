@@ -20,8 +20,8 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
         .describe("Convenience filter by domain classification (converted to server-side filter).")
         .optional(),
       filters: filterSchema(DOMAINS_FILTER_FIELDS).optional(),
-      limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)").optional(),
-      offset: z.number().min(0).default(0).describe("Results to skip").optional(),
+      limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)"),
+      offset: z.number().min(0).default(0).describe("Results to skip"),
     },
     async ({ project_id, start_date, end_date, dimensions, classification, filters, limit, offset }) => {
       try {
@@ -32,8 +32,8 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
         if (dates.start_date) body.start_date = dates.start_date;
         if (dates.end_date) body.end_date = dates.end_date;
         if (dimensions) body.dimensions = dimensions;
-        if (limit !== undefined) body.limit = limit;
-        if (offset !== undefined) body.offset = offset;
+        body.limit = limit;
+        body.offset = offset;
 
         const merged = mergeFilters(filters, { field: "classification", value: classification });
         if (merged) body.filters = merged;

@@ -20,24 +20,31 @@ export function filterSchema(allowedFields: readonly string[]) {
   })).describe("Server-side filters. Multiple filters are AND'd together.");
 }
 
-/** Merges convenience shortcut parameters into a filters array. */
+/** Merges convenience shortcut parameters into a filters array. Skips shortcuts whose field already exists in filters. */
 export function mergeFilters(
   filters: ReportFilter[] | undefined,
   ...shortcuts: Array<{ field: string; value: string | undefined }>
 ): ReportFilter[] | undefined {
   const merged: ReportFilter[] = filters ? [...filters] : [];
+  const existingFields = new Set(merged.map((f) => f.field));
   for (const { field, value } of shortcuts) {
-    if (value !== undefined) {
+    if (value !== undefined && !existingFields.has(field)) {
       merged.push({ field, operator: "in", values: [value] });
+      existingFields.add(field);
     }
   }
   return merged.length > 0 ? merged : undefined;
 }
 
-/** YYYY-MM-DD date string validated by regex. */
+/** YYYY-MM-DD date string validated by regex and real-date check. */
 export const dateSchema = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD");
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
+  .refine((s) => {
+    const [y, m, d] = s.split("-").map(Number);
+    const date = new Date(Date.UTC(y, m - 1, d));
+    return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
+  }, "Invalid calendar date");
 
 /**
  * Allowed breakdown dimensions for analytics reports.
@@ -155,7 +162,8 @@ export function slimReportRows(rows: ReportRow[]): Record<string, unknown>[] {
 
 /** Summary for list endpoints: "3 projects returned" */
 export function summaryForList(entity: string, items: unknown[]): string {
-  return `${items.length} ${entity} returned`;
+  const label = items.length === 1 ? entity.replace(/s$/, "") : entity;
+  return `${items.length} ${label} returned`;
 }
 
 /** Summary for brand report: "5 brands, top 'BrandX' 82% visibility, 45% SoV" */
@@ -202,7 +210,7 @@ export function toolResult(data: unknown) {
  * Uses `e.message` instead of `String(e)` to avoid exposing stack traces.
  */
 export function toolError(e: unknown) {
-  const message = e instanceof Error ? e.message : "Unknown error";
+  const message = e instanceof Error ? e.message : String(e);
   return {
     content: [{ type: "text" as const, text: message }],
     isError: true,

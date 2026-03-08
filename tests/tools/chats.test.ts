@@ -36,7 +36,7 @@ describe("list_chats tool", () => {
     });
     const parsed = JSON.parse(result.content[0].text);
 
-    expect(parsed._summary).toBe("1 chats returned");
+    expect(parsed._summary).toBe("1 chat returned");
     expect(parsed.chats).toHaveLength(1);
   });
 });

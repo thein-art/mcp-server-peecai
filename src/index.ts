@@ -23,6 +23,10 @@ import { registerDomainsReportTool } from "./tools/report-domains.js";
 import { registerUrlsReportTool } from "./tools/report-urls.js";
 import { registerPromptTemplates } from "./prompts.js";
 import type { Project } from "./types.js";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json") as { version: string };
 
 const apiKey = process.env.PEECAI_API_KEY;
 if (!apiKey) {
@@ -34,7 +38,7 @@ const client = new PeecApiClient(apiKey);
 
 const server = new McpServer({
   name: "peecai",
-  version: "0.2.0",
+  version,
 });
 
 // Register tools
@@ -73,10 +77,15 @@ async function main() {
   await server.connect(transport);
   console.error("Peec.ai MCP server running on stdio");
 
-  // Graceful shutdown
+  // Graceful shutdown with timeout fallback
   const shutdown = async () => {
     console.error("Shutting down Peec.ai MCP server…");
-    await server.close();
+    const forceExit = setTimeout(() => process.exit(1), 5_000);
+    try {
+      await server.close();
+    } finally {
+      clearTimeout(forceExit);
+    }
     process.exit(0);
   };
   process.on("SIGINT", shutdown);
@@ -84,6 +93,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error("Fatal error:", e);
+  console.error("Fatal error:", e instanceof Error ? e.message : e);
   process.exit(1);
 });
