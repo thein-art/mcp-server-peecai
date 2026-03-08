@@ -65,7 +65,7 @@ describe("PeecApiClient", () => {
         text: JSON.stringify({ message: "Forbidden" }),
       });
 
-      await expect(client.get("/secret")).rejects.toThrow("Peec API error 403: Forbidden");
+      await expect(client.get("/secret")).rejects.toThrow("Peec AI API error 403: Forbidden");
     });
 
     it("throws on non-ok response with plain text body", async () => {
@@ -76,7 +76,7 @@ describe("PeecApiClient", () => {
       });
 
       await expect(client.get("/broken")).rejects.toThrow(
-        "Peec API error 500: Internal Server Error"
+        "Peec AI API error 500: Internal Server Error"
       );
     });
 
@@ -89,7 +89,7 @@ describe("PeecApiClient", () => {
       });
 
       const err = client.get("/broken");
-      await expect(err).rejects.toThrow("Peec API error 500:");
+      await expect(err).rejects.toThrow("Peec AI API error 500:");
       await expect(err).rejects.toThrow("…");
     });
 
@@ -102,7 +102,7 @@ describe("PeecApiClient", () => {
       });
 
       const err = client.get("/broken");
-      await expect(err).rejects.toThrow("Peec API error 400:");
+      await expect(err).rejects.toThrow("Peec AI API error 400:");
       await expect(err).rejects.toThrow("…");
     });
 
@@ -113,7 +113,7 @@ describe("PeecApiClient", () => {
         text: JSON.stringify({ message: { details: "invalid field" } }),
       });
 
-      await expect(client.get("/broken")).rejects.toThrow("Peec API error 422:");
+      await expect(client.get("/broken")).rejects.toThrow("Peec AI API error 422:");
     });
   });
 

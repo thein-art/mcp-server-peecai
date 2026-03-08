@@ -8,7 +8,7 @@ import type { Brand } from "../types.js";
 export function registerBrandsTool(server: McpServer, client: PeecApiClient) {
   server.tool(
     "list_brands",
-    "List tracked brands for a Peec.ai project. Returns brand IDs, names, and associated domains.",
+    "List tracked brands for a Peec AI project. Returns brand IDs, names, and associated domains.",
     {
       project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
       limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),

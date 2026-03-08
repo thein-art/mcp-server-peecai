@@ -8,7 +8,7 @@ import type { Chat } from "../types.js";
 export function registerChatsTool(server: McpServer, client: PeecApiClient) {
   server.tool(
     "list_chats",
-    "List AI chat interactions tracked by Peec.ai. Returns up to limit results (default: 100). Always use date filters to scope results. Returns chat IDs, prompt/model refs, and dates. Without date filters, returns all chats.",
+    "List AI chat interactions tracked by Peec AI. Returns up to limit results (default: 100). Always use date filters to scope results. Returns chat IDs, prompt/model refs, and dates. Without date filters, returns all chats.",
     {
       project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
       start_date: dateSchema.describe("Start date filter (YYYY-MM-DD). Omit for no lower bound.").optional(),

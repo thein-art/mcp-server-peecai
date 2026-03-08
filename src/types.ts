@@ -1,9 +1,9 @@
-/** Standard Peec.ai API envelope — most list/report endpoints wrap results in `{ data: T }`. */
+/** Standard Peec AI API envelope — most list/report endpoints wrap results in `{ data: T }`. */
 export interface ApiResponse<T> {
   data: T;
 }
 
-/** A Peec.ai project representing a tracked brand or campaign. */
+/** A Peec AI project representing a tracked brand or campaign. */
 export interface Project {
   id: string;
   name: string;
@@ -31,7 +31,7 @@ export interface PromptMessage {
   content: string;
 }
 
-/** A search prompt that Peec.ai monitors across AI models. */
+/** A search prompt that Peec AI monitors across AI models. */
 export interface Prompt {
   id: string;
   messages: PromptMessage[];
@@ -52,7 +52,7 @@ export interface Topic {
   name: string;
 }
 
-/** An AI model tracked by Peec.ai (e.g. ChatGPT, Perplexity). */
+/** An AI model tracked by Peec AI (e.g. ChatGPT, Perplexity). */
 export interface Model {
   id: string;
   is_active: boolean;

@@ -7,10 +7,10 @@ startCommand:
     properties:
       peecaiApiKey:
         type: string
-        description: "Peec.ai API key"
+        description: "Peec AI API key"
       peecaiProjectId:
         type: string
-        description: "Default Peec.ai project ID (optional)"
+        description: "Default Peec AI project ID (optional)"
   commandFunction: |-
     (config) => ({
       command: 'node',

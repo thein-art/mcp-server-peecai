@@ -8,7 +8,7 @@ import type { Topic } from "../types.js";
 export function registerTopicsTool(server: McpServer, client: PeecApiClient) {
   server.tool(
     "list_topics",
-    "List topic groupings for a Peec.ai project. Returns topic IDs and names.",
+    "List topic groupings for a Peec AI project. Returns topic IDs and names.",
     {
       project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
       limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),

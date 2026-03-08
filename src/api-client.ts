@@ -5,7 +5,7 @@ const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_ERROR_LENGTH = 500;
 
 /**
- * HTTP client for the Peec.ai Customer API.
+ * HTTP client for the Peec AI Customer API.
  * Handles authentication, query parameters, timeouts, and error formatting.
  */
 export class PeecApiClient {
@@ -96,6 +96,6 @@ export class PeecApiClient {
     if (message.length > MAX_ERROR_LENGTH) {
       message = message.slice(0, MAX_ERROR_LENGTH) + "…";
     }
-    return `Peec API error ${response.status}: ${message}`;
+    return `Peec AI API error ${response.status}: ${message}`;
   }
 }

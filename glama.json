@@ -1,6 +1,6 @@
 {
   "name": "peecai",
-  "display_name": "Peec.ai AI Search Analytics",
+  "display_name": "Peec AI Search Analytics",
   "description": "Track brand visibility, sentiment, and citations across AI models like ChatGPT and Perplexity.",
   "icon_url": "https://peec.ai/favicon.ico",
   "repository": "https://github.com/thein-art/mcp-server-peecai",

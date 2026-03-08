@@ -8,7 +8,7 @@ import type { Project } from "../types.js";
 export function registerProjectsTool(server: McpServer, client: PeecApiClient) {
   server.tool(
     "list_projects",
-    "List all Peec.ai projects for the company. Returns project IDs, names, and statuses. Status values: CUSTOMER (active, ongoing monitoring), CUSTOMER_ENDED, PITCH (active demo), PITCH_ENDED (completed demo), TRIAL, TRIAL_ENDED, ONBOARDING, DELETED. Use CUSTOMER projects for current data.",
+    "List all Peec AI projects for the company. Returns project IDs, names, and statuses. Status values: CUSTOMER (active, ongoing monitoring), CUSTOMER_ENDED, PITCH (active demo), PITCH_ENDED (completed demo), TRIAL, TRIAL_ENDED, ONBOARDING, DELETED. Use CUSTOMER projects for current data.",
     {
       limit: z.number().min(1).max(10000).default(1000).describe("Max results to return (1-10000)").optional(),
       offset: z.number().min(0).default(0).describe("Number of results to skip").optional(),

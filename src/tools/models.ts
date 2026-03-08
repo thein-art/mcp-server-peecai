@@ -8,7 +8,7 @@ import type { Model } from "../types.js";
 export function registerModelsTool(server: McpServer, client: PeecApiClient) {
   server.tool(
     "list_models",
-    "List AI models tracked by Peec.ai (ChatGPT, Perplexity, etc.). Returns model IDs and active status.",
+    "List AI models tracked by Peec AI (ChatGPT, Perplexity, etc.). Returns model IDs and active status.",
     {
       project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
       limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),

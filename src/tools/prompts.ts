@@ -8,7 +8,7 @@ import type { Prompt } from "../types.js";
 export function registerPromptsTool(server: McpServer, client: PeecApiClient) {
   server.tool(
     "list_prompts",
-    "List search prompts for a Peec.ai project. Returns prompt IDs, messages, tags, topics, locations, and search volume.",
+    "List search prompts for a Peec AI project. Returns prompt IDs, messages, tags, topics, locations, and search volume.",
     {
       project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
       limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),

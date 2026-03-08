@@ -8,7 +8,7 @@ import type { Tag } from "../types.js";
 export function registerTagsTool(server: McpServer, client: PeecApiClient) {
   server.tool(
     "list_tags",
-    "List category tags for a Peec.ai project. Returns tag IDs and names.",
+    "List category tags for a Peec AI project. Returns tag IDs and names.",
     {
       project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
       limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),

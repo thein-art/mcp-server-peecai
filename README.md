@@ -1,7 +1,7 @@
 <p align="center">
-  <h1 align="center">Peec.ai MCP Server</h1>
+  <h1 align="center">Peec AI MCP Server</h1>
   <p align="center">
-    Community-built MCP server for the <a href="https://peec.ai">Peec.ai</a> API — AI Search Analytics for brand visibility, sentiment, and citations across ChatGPT, Perplexity, and other AI models.
+    Community-built MCP server for the <a href="https://peec.ai">Peec AI</a> API — AI Search Analytics for brand visibility, sentiment, and citations across ChatGPT, Perplexity, and other AI models.
   </p>
 </p>
 
@@ -10,15 +10,15 @@
   <img src="https://img.shields.io/badge/MCP-compatible-0098FF?style=flat-square" alt="MCP compatible">
 </p>
 
-> **Note:** This is an unofficial community project, not affiliated with or endorsed by Peec.ai. It requires a [Peec.ai](https://peec.ai) account and API key.
+> **Note:** This is an unofficial community project, not affiliated with or endorsed by Peec AI. It requires a [Peec AI](https://peec.ai) account and API key.
 
-> **API Beta:** The Peec.ai API is currently in beta — endpoints, payloads, and responses may change. Access is limited to Enterprise customers.
+> **API Beta:** The Peec AI API is currently in beta — endpoints, payloads, and responses may change. Access is limited to Enterprise customers.
 
 ---
 
 ## What it does
 
-Peec.ai tracks how brands appear in AI-generated answers. This MCP server gives Claude direct access to that data — 11 tools covering projects, brands, prompts, chats, and analytics reports.
+Peec AI tracks how brands appear in AI-generated answers. This MCP server gives Claude direct access to that data — 11 tools covering projects, brands, prompts, chats, and analytics reports.
 
 **Key capabilities:**
 - Query brand visibility, sentiment, and position across AI models
@@ -178,12 +178,12 @@ All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `
 |------|:---------:|:----------:|:-----------:|
 | All 11 tools | Yes | Yes | No |
 
-All tools are read-only GET/POST queries against the Peec.ai API. No data is modified.
+All tools are read-only GET/POST queries against the Peec AI API. No data is modified.
 
 ## Example Prompts
 
 ```
-"List my Peec.ai projects"
+"List my Peec AI projects"
 "Show brand visibility for the last 30 days"
 "Which domains get cited most in AI search results?"
 "Compare brand sentiment across ChatGPT and Perplexity"
@@ -200,7 +200,7 @@ All tools are read-only GET/POST queries against the Peec.ai API. No data is mod
 
 ## API Drift Detection
 
-The Peec.ai API is in beta and may change. A drift detection script compares the live OpenAPI spec against a committed snapshot:
+The Peec AI API is in beta and may change. A drift detection script compares the live OpenAPI spec against a committed snapshot:
 
 ```bash
 npm run check:api-drift
@@ -240,7 +240,7 @@ npm run check:api-drift  # Check for API spec changes
 ```
 src/
 ├── index.ts          # Server entry point, tool registration
-├── api-client.ts     # HTTP client for Peec.ai Customer API
+├── api-client.ts     # HTTP client for Peec AI Customer API
 ├── types.ts          # TypeScript interfaces for API responses
 ├── util.ts           # Shared validation, date handling, MCP response helpers
 ├── prompts.ts        # MCP prompt templates (guided workflows)

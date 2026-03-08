@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Checks whether the Peec.ai OpenAPI spec has changed since the last snapshot.
+# Checks whether the Peec AI OpenAPI spec has changed since the last snapshot.
 # Usage: bash scripts/check-api-drift.sh
 # Exit code: 0 = no drift, 1 = drift detected or error
 

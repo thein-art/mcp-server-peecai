@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Peec.ai MCP Server
+ * Peec AI MCP Server
  *
- * Exposes the Peec.ai Customer API as MCP tools for AI Search Analytics —
+ * Exposes the Peec AI Customer API as MCP tools for AI Search Analytics —
  * brand visibility, sentiment, citations, and domain/URL analysis across
  * AI models like ChatGPT and Perplexity.
  */
@@ -59,7 +59,7 @@ registerPromptTemplates(server);
 
 // Register resource: projects://list
 server.resource("projects-list", "projects://list", {
-  description: "List all available Peec.ai projects for the authenticated account.",
+  description: "List all available Peec AI projects for the authenticated account.",
   mimeType: "application/json",
 }, async () => {
   const projects = await client.get<Project[]>("/projects", { limit: 1000 });
@@ -75,11 +75,11 @@ server.resource("projects-list", "projects://list", {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Peec.ai MCP server running on stdio");
+  console.error("Peec AI MCP server running on stdio");
 
   // Graceful shutdown with timeout fallback
   const shutdown = async () => {
-    console.error("Shutting down Peec.ai MCP server…");
+    console.error("Shutting down Peec AI MCP server…");
     const forceExit = setTimeout(() => process.exit(1), 5_000);
     try {
       await server.close();

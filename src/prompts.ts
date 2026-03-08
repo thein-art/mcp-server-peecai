@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-/** Registers guided workflow prompts for common Peec.ai analytics tasks. */
+/** Registers guided workflow prompts for common Peec AI analytics tasks. */
 export function registerPromptTemplates(server: McpServer) {
   server.prompt(
     "brand-visibility-analysis",

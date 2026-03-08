@@ -1,7 +1,7 @@
 {
   "name": "mcp-server-peecai",
   "version": "0.2.0",
-  "description": "Community MCP server for the Peec.ai API - AI Search Analytics",
+  "description": "Community MCP server for the Peec AI API - AI Search Analytics",
   "type": "module",
   "license": "MIT",
   "author": "Tobias Hein (https://artaxo.com)",
