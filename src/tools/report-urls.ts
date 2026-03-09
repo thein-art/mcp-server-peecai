@@ -8,20 +8,23 @@ const URLS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "doma
 
 /** Registers the get_urls_report tool for URL classification, usage, and citation analytics. */
 export function registerUrlsReportTool(server: McpServer, client: PeecApiClient) {
-  server.tool(
+  server.registerTool(
     "get_urls_report",
-    "Get URL analytics report: usage_count (chats citing this URL), citation_count (total citations), citation_avg (avg citations per chat). Classification values: HOMEPAGE, CATEGORY_PAGE, PRODUCT_PAGE, LISTICLE, COMPARISON, PROFILE, ALTERNATIVE, DISCUSSION, HOW_TO_GUIDE, ARTICLE, OTHER. Returns up to limit results (default: 100). Use classification shortcut or filters array for server-side filtering. Without date filters, returns data across all available dates.",
     {
-      project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
-      start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),
-      end_date: dateSchema.describe("End date (YYYY-MM-DD). Omit for no upper bound.").optional(),
-      dimensions: dimensionsSchema.optional(),
-      classification: z.enum(["HOMEPAGE", "CATEGORY_PAGE", "PRODUCT_PAGE", "LISTICLE", "COMPARISON", "PROFILE", "ALTERNATIVE", "DISCUSSION", "HOW_TO_GUIDE", "ARTICLE", "OTHER"])
-        .describe("Convenience filter by URL classification (converted to server-side filter).")
-        .optional(),
-      filters: filterSchema(URLS_FILTER_FIELDS).optional(),
-      limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)"),
-      offset: z.number().min(0).default(0).describe("Results to skip"),
+      description: "Get URL analytics report: usage_count (chats citing this URL), citation_count (total citations), citation_avg (avg citations per chat). Classification values: HOMEPAGE, CATEGORY_PAGE, PRODUCT_PAGE, LISTICLE, COMPARISON, PROFILE, ALTERNATIVE, DISCUSSION, HOW_TO_GUIDE, ARTICLE, OTHER. Returns up to limit results (default: 100). Use classification shortcut or filters array for server-side filtering. Without date filters, returns data across all available dates.",
+      inputSchema: {
+        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+        start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),
+        end_date: dateSchema.describe("End date (YYYY-MM-DD). Omit for no upper bound.").optional(),
+        dimensions: dimensionsSchema.optional(),
+        classification: z.enum(["HOMEPAGE", "CATEGORY_PAGE", "PRODUCT_PAGE", "LISTICLE", "COMPARISON", "PROFILE", "ALTERNATIVE", "DISCUSSION", "HOW_TO_GUIDE", "ARTICLE", "OTHER"])
+          .describe("Convenience filter by URL classification (converted to server-side filter).")
+          .optional(),
+        filters: filterSchema(URLS_FILTER_FIELDS).optional(),
+        limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)"),
+        offset: z.number().min(0).default(0).describe("Results to skip"),
+      },
+      annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
     async ({ project_id, start_date, end_date, dimensions, classification, filters, limit, offset }) => {
       try {

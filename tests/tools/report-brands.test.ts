@@ -87,4 +87,15 @@ describe("get_brands_report tool", () => {
     const sentBody = postSpy.mock.calls[0][1];
     expect(sentBody.filters).toHaveLength(2);
   });
+
+  it("returns error on API failure", async () => {
+    const { client, server } = setup();
+    vi.spyOn(client, "post").mockRejectedValue(new Error("Service unavailable"));
+
+    const handler = getHandler(server, "get_brands_report");
+    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe("Service unavailable");
+  });
 });

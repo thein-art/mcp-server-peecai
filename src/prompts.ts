@@ -3,12 +3,14 @@ import { z } from "zod";
 
 /** Registers guided workflow prompts for common Peec AI analytics tasks. */
 export function registerPromptTemplates(server: McpServer) {
-  server.prompt(
+  server.registerPrompt(
     "brand-visibility-analysis",
-    "Analyze brand visibility, sentiment, and position across AI models for a project.",
     {
-      project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
-      period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
+      description: "Analyze brand visibility, sentiment, and position across AI models for a project.",
+      argsSchema: {
+        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
+        period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
+      },
     },
     ({ project_id, period }) => {
       const days = { "7d": 7, "28d": 28, "90d": 90 }[period];
@@ -40,12 +42,14 @@ export function registerPromptTemplates(server: McpServer) {
     },
   );
 
-  server.prompt(
+  server.registerPrompt(
     "competitive-gap-analysis",
-    "Compare own brand vs competitors — identify visibility gaps across prompts and models.",
     {
-      project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
-      period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
+      description: "Compare own brand vs competitors — identify visibility gaps across prompts and models.",
+      argsSchema: {
+        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
+        period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
+      },
     },
     ({ project_id, period }) => {
       const days = { "7d": 7, "28d": 28, "90d": 90 }[period];
@@ -79,12 +83,14 @@ export function registerPromptTemplates(server: McpServer) {
     },
   );
 
-  server.prompt(
+  server.registerPrompt(
     "ai-search-citation-report",
-    "Analyze which URLs and domains get cited in AI responses — find content optimization opportunities.",
     {
-      project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
-      period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
+      description: "Analyze which URLs and domains get cited in AI responses — find content optimization opportunities.",
+      argsSchema: {
+        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
+        period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
+      },
     },
     ({ project_id, period }) => {
       const days = { "7d": 7, "28d": 28, "90d": 90 }[period];

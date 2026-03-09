@@ -6,13 +6,16 @@ import type { Tag } from "../types.js";
 
 /** Registers the list_tags tool for retrieving category tags. */
 export function registerTagsTool(server: McpServer, client: PeecApiClient) {
-  server.tool(
+  server.registerTool(
     "list_tags",
-    "List category tags for a Peec AI project. Returns tag IDs and names.",
     {
-      project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
-      limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),
-      offset: z.number().min(0).default(0).describe("Results to skip").optional(),
+      description: "List category tags for a Peec AI project. Returns tag IDs and names.",
+      inputSchema: {
+        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+        limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),
+        offset: z.number().min(0).default(0).describe("Results to skip").optional(),
+      },
+      annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
     async ({ project_id, limit, offset }) => {
       try {

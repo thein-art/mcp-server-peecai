@@ -61,4 +61,15 @@ describe("get_domains_report tool", () => {
       filters: [{ field: "domain", operator: "in", values: ["example.com"] }],
     }));
   });
+
+  it("returns error on API failure", async () => {
+    const { client, server } = setup();
+    vi.spyOn(client, "post").mockRejectedValue(new Error("Bad gateway"));
+
+    const handler = getHandler(server, "get_domains_report");
+    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe("Bad gateway");
+  });
 });

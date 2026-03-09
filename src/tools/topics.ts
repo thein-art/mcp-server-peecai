@@ -6,13 +6,16 @@ import type { Topic } from "../types.js";
 
 /** Registers the list_topics tool for retrieving topic groupings. */
 export function registerTopicsTool(server: McpServer, client: PeecApiClient) {
-  server.tool(
+  server.registerTool(
     "list_topics",
-    "List topic groupings for a Peec AI project. Returns topic IDs and names.",
     {
-      project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
-      limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),
-      offset: z.number().min(0).default(0).describe("Results to skip").optional(),
+      description: "List topic groupings for a Peec AI project. Returns topic IDs and names.",
+      inputSchema: {
+        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+        limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),
+        offset: z.number().min(0).default(0).describe("Results to skip").optional(),
+      },
+      annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
     async ({ project_id, limit, offset }) => {
       try {

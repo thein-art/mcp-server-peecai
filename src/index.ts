@@ -36,10 +36,16 @@ if (!apiKey) {
 
 const client = new PeecApiClient(apiKey);
 
-const server = new McpServer({
-  name: "peecai",
-  version,
-});
+const server = new McpServer(
+  { name: "peecai", version },
+  {
+    instructions: "This server provides AI search analytics from Peec AI. " +
+      "Start by calling list_projects to find available projects. " +
+      "Most tools require a project_id — use PEECAI_PROJECT_ID env var or pass it explicitly. " +
+      "For reports (brands, domains, URLs), specify date ranges with start_date/end_date. " +
+      "Use list_brands, list_models, list_prompts to resolve IDs returned in reports.",
+  },
+);
 
 // Register tools
 registerProjectsTool(server, client);
@@ -58,18 +64,23 @@ registerUrlsReportTool(server, client);
 registerPromptTemplates(server);
 
 // Register resource: projects://list
-server.resource("projects-list", "projects://list", {
+server.registerResource("projects-list", "projects://list", {
   description: "List all available Peec AI projects for the authenticated account.",
   mimeType: "application/json",
 }, async () => {
-  const projects = await client.get<Project[]>("/projects", { limit: 1000 });
-  return {
-    contents: [{
-      uri: "projects://list",
-      mimeType: "application/json",
-      text: JSON.stringify(projects),
-    }],
-  };
+  try {
+    const projects = await client.get<Project[]>("/projects", { limit: 1000 });
+    return {
+      contents: [{
+        uri: "projects://list",
+        mimeType: "application/json",
+        text: JSON.stringify(projects),
+      }],
+    };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    throw new Error(`Failed to fetch projects: ${message}`);
+  }
 });
 
 async function main() {

@@ -8,20 +8,23 @@ const DOMAINS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "d
 
 /** Registers the get_domains_report tool for domain classification, usage, and citation analytics. */
 export function registerDomainsReportTool(server: McpServer, client: PeecApiClient) {
-  server.tool(
+  server.registerTool(
     "get_domains_report",
-    "Get domain analytics report: usage_rate (0-1, share of chats citing this domain) and citation_avg (avg citations per chat). Classification values: OWN, CORPORATE, COMPETITOR, EDITORIAL, REFERENCE, INSTITUTIONAL, UGC, OTHER. Returns up to limit results (default: 100). Use classification shortcut or filters array for server-side filtering. Without date filters, returns data across all available dates.",
     {
-      project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
-      start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),
-      end_date: dateSchema.describe("End date (YYYY-MM-DD). Omit for no upper bound.").optional(),
-      dimensions: dimensionsSchema.optional(),
-      classification: z.enum(["OWN", "CORPORATE", "COMPETITOR", "EDITORIAL", "REFERENCE", "INSTITUTIONAL", "UGC", "OTHER"])
-        .describe("Convenience filter by domain classification (converted to server-side filter).")
-        .optional(),
-      filters: filterSchema(DOMAINS_FILTER_FIELDS).optional(),
-      limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)"),
-      offset: z.number().min(0).default(0).describe("Results to skip"),
+      description: "Get domain analytics report: usage_rate (0-1, share of chats citing this domain) and citation_avg (avg citations per chat). Classification values: OWN, CORPORATE, COMPETITOR, EDITORIAL, REFERENCE, INSTITUTIONAL, UGC, OTHER. Returns up to limit results (default: 100). Use classification shortcut or filters array for server-side filtering. Without date filters, returns data across all available dates.",
+      inputSchema: {
+        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+        start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),
+        end_date: dateSchema.describe("End date (YYYY-MM-DD). Omit for no upper bound.").optional(),
+        dimensions: dimensionsSchema.optional(),
+        classification: z.enum(["OWN", "CORPORATE", "COMPETITOR", "EDITORIAL", "REFERENCE", "INSTITUTIONAL", "UGC", "OTHER"])
+          .describe("Convenience filter by domain classification (converted to server-side filter).")
+          .optional(),
+        filters: filterSchema(DOMAINS_FILTER_FIELDS).optional(),
+        limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)"),
+        offset: z.number().min(0).default(0).describe("Results to skip"),
+      },
+      annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
     async ({ project_id, start_date, end_date, dimensions, classification, filters, limit, offset }) => {
       try {

@@ -39,4 +39,19 @@ describe("list_chats tool", () => {
     expect(parsed._summary).toBe("1 chat returned");
     expect(parsed.chats).toHaveLength(1);
   });
+
+  it("returns error on API failure", async () => {
+    const { client, server } = setup();
+    vi.spyOn(client, "get").mockRejectedValue(new Error("Rate limited"));
+
+    const handler = getHandler(server, "list_chats");
+    const result = await handler({
+      project_id: VALID_PID,
+      limit: 100,
+      offset: 0,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe("Rate limited");
+  });
 });

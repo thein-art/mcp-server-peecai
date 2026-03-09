@@ -31,4 +31,15 @@ describe("list_brands tool", () => {
     expect(parsed._summary).toBe("1 brand returned");
     expect(parsed.brands).toHaveLength(1);
   });
+
+  it("returns error on API failure", async () => {
+    const { client, server } = setup();
+    vi.spyOn(client, "get").mockRejectedValue(new Error("Unauthorized"));
+
+    const handler = getHandler(server, "list_brands");
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe("Unauthorized");
+  });
 });

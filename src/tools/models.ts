@@ -6,13 +6,16 @@ import type { Model } from "../types.js";
 
 /** Registers the list_models tool for retrieving tracked AI models. */
 export function registerModelsTool(server: McpServer, client: PeecApiClient) {
-  server.tool(
+  server.registerTool(
     "list_models",
-    "List AI models tracked by Peec AI (ChatGPT, Perplexity, etc.). Returns model IDs and active status.",
     {
-      project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
-      limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),
-      offset: z.number().min(0).default(0).describe("Results to skip").optional(),
+      description: "List AI models tracked by Peec AI (ChatGPT, Perplexity, etc.). Returns model IDs and active status.",
+      inputSchema: {
+        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+        limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),
+        offset: z.number().min(0).default(0).describe("Results to skip").optional(),
+      },
+      annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
     async ({ project_id, limit, offset }) => {
       try {
