@@ -6,8 +6,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/thein-art/mcp-server-peecai/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/thein-art/mcp-server-peecai/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen?style=flat-square&logo=node.js&logoColor=white" alt="Node.js >= 22">
   <img src="https://img.shields.io/badge/MCP-compatible-0098FF?style=flat-square" alt="MCP compatible">
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/thein-art/mcp-server-peecai?style=flat-square" alt="License"></a>
+  <a href="https://www.npmjs.com/package/mcp-server-peecai"><img src="https://img.shields.io/npm/v/mcp-server-peecai?style=flat-square" alt="npm"></a>
+  <a href="https://www.npmjs.com/package/mcp-server-peecai"><img src="https://img.shields.io/npm/dm/mcp-server-peecai?style=flat-square" alt="Downloads"></a>
 </p>
 
 > **Note:** This is an unofficial community project, not affiliated with or endorsed by Peec AI. It requires a [Peec AI](https://peec.ai) account and API key.
@@ -18,7 +22,7 @@
 
 ## What it does
 
-Peec AI tracks how brands appear in AI-generated answers. This MCP server gives Claude direct access to that data — 11 tools covering projects, brands, prompts, chats, and analytics reports.
+Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 11 tools covering projects, brands, prompts, chats, and analytics reports.
 
 **Key capabilities:**
 - Query brand visibility, sentiment, and position across AI models
@@ -32,30 +36,20 @@ Peec AI tracks how brands appear in AI-generated answers. This MCP server gives 
 
 Sign up at [app.peec.ai](https://app.peec.ai) and create an API key under **Settings > API Keys**.
 
-### 2. Install
-
-```bash
-git clone https://github.com/thein-art/mcp-server-peecai.git
-cd mcp-server-peecai
-npm install && npm run build
-```
-
-### 3. Configure
+### 2. Configure
 
 <details open>
 <summary><strong>Claude Code</strong></summary>
 
-The repository includes a `.mcp.json` for automatic setup. Set the environment variables and Claude Code will pick it up:
+```bash
+claude mcp add --transport stdio peecai -- npx -y mcp-server-peecai
+```
+
+Set environment variables:
 
 ```bash
 export PEECAI_API_KEY="your-api-key"
 export PEECAI_PROJECT_ID="your-project-id"  # optional default
-```
-
-Or add manually:
-
-```bash
-claude mcp add --transport stdio peecai -- node /path/to/mcp-server-peecai/dist/index.js
 ```
 
 </details>
@@ -69,8 +63,8 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "peecai": {
-      "command": "node",
-      "args": ["/path/to/mcp-server-peecai/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "mcp-server-peecai"],
       "env": {
         "PEECAI_API_KEY": "your-api-key",
         "PEECAI_PROJECT_ID": "your-project-id"
@@ -91,8 +85,8 @@ Add to `.vscode/mcp.json` in your workspace:
 {
   "servers": {
     "peecai": {
-      "command": "node",
-      "args": ["/path/to/mcp-server-peecai/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "mcp-server-peecai"],
       "env": {
         "PEECAI_API_KEY": "your-api-key",
         "PEECAI_PROJECT_ID": "your-project-id"
@@ -104,9 +98,9 @@ Add to `.vscode/mcp.json` in your workspace:
 
 </details>
 
-### 4. Verify
+### 3. Verify
 
-In Claude Code, run `/mcp` to confirm the `peecai` server is connected.
+Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Code/Cursor check the MCP server status in the output panel.
 
 ## Tools
 
