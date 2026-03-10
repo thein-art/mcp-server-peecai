@@ -7,7 +7,7 @@
  * AI models like ChatGPT and Perplexity.
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { PeecApiClient } from "./api-client.js";
 import { registerProjectsTool } from "./tools/projects.js";
@@ -22,7 +22,7 @@ import { registerBrandsReportTool } from "./tools/report-brands.js";
 import { registerDomainsReportTool } from "./tools/report-domains.js";
 import { registerUrlsReportTool } from "./tools/report-urls.js";
 import { registerPromptTemplates } from "./prompts.js";
-import type { Project } from "./types.js";
+import type { Brand, Model, Prompt, Project, Tag, Topic } from "./types.js";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -63,8 +63,8 @@ registerUrlsReportTool(server, client);
 // Register MCP prompts (guided workflows)
 registerPromptTemplates(server);
 
-// Register resource: projects://list
-server.registerResource("projects-list", "projects://list", {
+// Register resources
+server.registerResource("projects", "peecai://projects", {
   description: "List all available Peec AI projects for the authenticated account.",
   mimeType: "application/json",
 }, async () => {
@@ -72,7 +72,7 @@ server.registerResource("projects-list", "projects://list", {
     const projects = await client.get<Project[]>("/projects", { limit: 1000 });
     return {
       contents: [{
-        uri: "projects://list",
+        uri: "peecai://projects",
         mimeType: "application/json",
         text: JSON.stringify(projects),
       }],
@@ -82,6 +82,45 @@ server.registerResource("projects-list", "projects://list", {
     throw new Error(`Failed to fetch projects: ${message}`);
   }
 });
+
+// Register resource templates for dimension lookups
+const dimensionResources: Array<{
+  name: string;
+  endpoint: string;
+  description: string;
+}> = [
+  { name: "brands", endpoint: "/brands", description: "Tracked brands and their domains for a project." },
+  { name: "tags", endpoint: "/tags", description: "Category tags for a project." },
+  { name: "topics", endpoint: "/topics", description: "Topic groupings for a project." },
+  { name: "models", endpoint: "/models", description: "AI models tracked by Peec AI for a project." },
+  { name: "prompts", endpoint: "/prompts", description: "Search prompts monitored across AI models for a project." },
+];
+
+for (const { name, endpoint, description } of dimensionResources) {
+  server.registerResource(
+    name,
+    new ResourceTemplate(`peecai://projects/{project_id}/${name}`, { list: undefined }),
+    { description, mimeType: "application/json" },
+    async (uri, { project_id }) => {
+      try {
+        const data = await client.get<(Brand | Tag | Topic | Model | Prompt)[]>(endpoint, {
+          project_id: String(project_id),
+          limit: 10000,
+        });
+        return {
+          contents: [{
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(data),
+          }],
+        };
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        throw new Error(`Failed to fetch ${name}: ${message}`);
+      }
+    },
+  );
+}
 
 async function main() {
   const transport = new StdioServerTransport();
