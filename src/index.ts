@@ -61,7 +61,7 @@ registerDomainsReportTool(server, client);
 registerUrlsReportTool(server, client);
 
 // Register MCP prompts (guided workflows)
-registerPromptTemplates(server);
+registerPromptTemplates(server, client);
 
 // Register resources
 server.registerResource("projects", "peecai://projects", {
