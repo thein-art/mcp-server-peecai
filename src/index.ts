@@ -40,8 +40,8 @@ const server = new McpServer(
   { name: "peecai", version },
   {
     instructions: "This server provides AI search analytics from Peec AI. " +
-      "Start by calling list_projects to find available projects. " +
-      "Most tools require a project_id — use PEECAI_PROJECT_ID env var or pass it explicitly. " +
+      "Most tools require a project_id parameter — call list_projects first to find available project IDs. " +
+      "If PEECAI_PROJECT_ID is set, it will be used as the default when project_id is omitted. " +
       "For reports (brands, domains, URLs), specify date ranges with start_date/end_date. " +
       "Use list_brands, list_models, list_prompts to resolve IDs returned in reports.",
   },
