@@ -11,7 +11,7 @@ export function registerBrandsReportTool(server: McpServer, client: PeecApiClien
   server.registerTool(
     "get_brands_report",
     {
-      description: "Get brand analytics report per brand. Metrics: visibility (visibility_count/visibility_total), share_of_voice (0-1), mention_count, sentiment (0-100 scale, 50=neutral), position (avg rank when mentioned, lower=better). Returns up to limit results (default: 100). Use brand_id shortcut or filters array for server-side filtering. Supports date filtering and dimensional breakdowns. Without date filters, returns data across all available dates.",
+      description: "Get brand analytics report per brand. Metrics: visibility (visibility_count/visibility_total), share_of_voice (0-1), mention_count, sentiment (0-100 scale, 50=neutral), position (avg rank when mentioned, lower=better). Returns up to limit results (default: 100). Use brand_id shortcut or filters array for server-side filtering. Supports date filtering and dimensional breakdowns. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters — try a broader date range or fewer filters.",
       inputSchema: {
         project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
         start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),

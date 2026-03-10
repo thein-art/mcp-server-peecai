@@ -11,7 +11,7 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
   server.registerTool(
     "get_domains_report",
     {
-      description: "Get domain analytics report: usage_rate (0-1, share of chats citing this domain) and citation_avg (avg citations per chat). Classification values: OWN, CORPORATE, COMPETITOR, EDITORIAL, REFERENCE, INSTITUTIONAL, UGC, OTHER. Returns up to limit results (default: 100). Use classification shortcut or filters array for server-side filtering. Without date filters, returns data across all available dates.",
+      description: "Get domain analytics report: usage_rate (0-1, share of chats citing this domain) and citation_avg (avg citations per chat). Classification values: OWN, CORPORATE, COMPETITOR, EDITORIAL, REFERENCE, INSTITUTIONAL, UGC, OTHER. Returns up to limit results (default: 100). Use classification shortcut or filters array for server-side filtering. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters.",
       inputSchema: {
         project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
         start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),

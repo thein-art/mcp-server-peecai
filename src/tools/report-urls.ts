@@ -11,7 +11,7 @@ export function registerUrlsReportTool(server: McpServer, client: PeecApiClient)
   server.registerTool(
     "get_urls_report",
     {
-      description: "Get URL analytics report: usage_count (chats citing this URL), citation_count (total citations), citation_avg (avg citations per chat). Classification values: HOMEPAGE, CATEGORY_PAGE, PRODUCT_PAGE, LISTICLE, COMPARISON, PROFILE, ALTERNATIVE, DISCUSSION, HOW_TO_GUIDE, ARTICLE, OTHER. Returns up to limit results (default: 100). Use classification shortcut or filters array for server-side filtering. Without date filters, returns data across all available dates.",
+      description: "Get URL analytics report: usage_count (chats citing this URL), citation_count (total citations), citation_avg (avg citations per chat). Classification values: HOMEPAGE, CATEGORY_PAGE, PRODUCT_PAGE, LISTICLE, COMPARISON, PROFILE, ALTERNATIVE, DISCUSSION, HOW_TO_GUIDE, ARTICLE, OTHER. Returns up to limit results (default: 100). Use classification shortcut or filters array for server-side filtering. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters.",
       inputSchema: {
         project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
         start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),
