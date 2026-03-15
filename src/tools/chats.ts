@@ -9,9 +9,9 @@ export function registerChatsTool(server: McpServer, client: PeecApiClient) {
   server.registerTool(
     "list_chats",
     {
-      description: "List AI chat interactions tracked by Peec AI. Returns up to limit results (default: 100). Always use date filters to scope results. Returns chat IDs, prompt/model refs, and dates. Without date filters, returns all chats.",
+      description: "List AI chat interactions tracked by Peec AI. Returns up to limit results (default: 100). Recommended: use date filters to scope results. Returns chat IDs, prompt/model refs, and dates. Without date filters, returns all chats.",
       inputSchema: {
-        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+        project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
         start_date: dateSchema.describe("Start date filter (YYYY-MM-DD). Omit for no lower bound.").optional(),
         end_date: dateSchema.describe("End date filter (YYYY-MM-DD). Omit for no upper bound.").optional(),
         limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)").optional(),

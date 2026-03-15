@@ -21,6 +21,8 @@ import { registerChatContentTool } from "./tools/chat-content.js";
 import { registerBrandsReportTool } from "./tools/report-brands.js";
 import { registerDomainsReportTool } from "./tools/report-domains.js";
 import { registerUrlsReportTool } from "./tools/report-urls.js";
+import { registerSearchQueriesTool } from "./tools/queries-search.js";
+import { registerShoppingQueriesTool } from "./tools/queries-shopping.js";
 import { registerPromptTemplates } from "./prompts.js";
 import type { Brand, Model, Prompt, Project, Tag, Topic } from "./types.js";
 import { createRequire } from "node:module";
@@ -43,6 +45,7 @@ const server = new McpServer(
       "Most tools require a project_id parameter — call list_projects first to find available project IDs. " +
       "If PEECAI_PROJECT_ID is set, it will be used as the default when project_id is omitted. " +
       "For reports (brands, domains, URLs), specify date ranges with start_date/end_date. " +
+      "Use search_queries and shopping_queries to see what queries AI models generated. " +
       "Use list_brands, list_models, list_prompts to resolve IDs returned in reports.",
   },
 );
@@ -59,6 +62,8 @@ registerChatContentTool(server, client);
 registerBrandsReportTool(server, client);
 registerDomainsReportTool(server, client);
 registerUrlsReportTool(server, client);
+registerSearchQueriesTool(server, client);
+registerShoppingQueriesTool(server, client);
 
 // Register MCP prompts (guided workflows)
 registerPromptTemplates(server, client);

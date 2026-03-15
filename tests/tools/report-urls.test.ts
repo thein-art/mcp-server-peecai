@@ -45,16 +45,25 @@ describe("get_urls_report tool", () => {
     expect(parsed.rows[0].title).toBe("Test Article");
   });
 
-  it("sends classification as server-side filter", async () => {
+  it("filters classification client-side", async () => {
     const { client, server } = setup();
-    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+    const apiData = [
+      { url: "https://example.com/article", classification: "ARTICLE", title: "Article", usage_count: 5, citation_count: 10, citation_avg: 2.0 },
+      { url: "https://example.com/home", classification: "HOMEPAGE", title: "Home", usage_count: 3, citation_count: 6, citation_avg: 2.0 },
+    ];
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue(apiData);
 
     const handler = getHandler(server, "get_urls_report");
-    await handler({ project_id: VALID_PID, classification: "ARTICLE", limit: 100, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, classification: "ARTICLE", limit: 100, offset: 0 });
+    const parsed = JSON.parse(result.content[0].text);
 
-    expect(postSpy).toHaveBeenCalledWith("/reports/urls", expect.objectContaining({
-      filters: [{ field: "classification", operator: "in", values: ["ARTICLE"] }],
+    // classification should NOT be sent to API
+    expect(postSpy).toHaveBeenCalledWith("/reports/urls", expect.not.objectContaining({
+      filters: expect.anything(),
     }));
+    // only ARTICLE rows should be returned
+    expect(parsed.rows).toHaveLength(1);
+    expect(parsed.rows[0].url).toBe("https://example.com/article");
   });
 
   it("passes explicit filters to API", async () => {

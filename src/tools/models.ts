@@ -11,7 +11,7 @@ export function registerModelsTool(server: McpServer, client: PeecApiClient) {
     {
       description: "List AI models tracked by Peec AI (ChatGPT, Perplexity, etc.). Returns model IDs and active status.",
       inputSchema: {
-        project_id: z.string().describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+        project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
         limit: z.number().min(1).max(10000).default(1000).describe("Max results (1-10000)").optional(),
         offset: z.number().min(0).default(0).describe("Results to skip").optional(),
       },

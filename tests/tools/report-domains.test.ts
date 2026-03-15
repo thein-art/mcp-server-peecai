@@ -37,16 +37,25 @@ describe("get_domains_report tool", () => {
     expect(parsed.rows[1]).not.toHaveProperty("classification");
   });
 
-  it("sends classification as server-side filter", async () => {
+  it("filters classification client-side", async () => {
     const { client, server } = setup();
-    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+    const apiData = [
+      { domain: "own.com", classification: "OWN", usage_rate: 0.5, citation_avg: 2.0 },
+      { domain: "editorial.com", classification: "EDITORIAL", usage_rate: 0.3, citation_avg: 1.0 },
+    ];
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue(apiData);
 
     const handler = getHandler(server, "get_domains_report");
-    await handler({ project_id: VALID_PID, classification: "OWN", limit: 100, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, classification: "OWN", limit: 100, offset: 0 });
+    const parsed = JSON.parse(result.content[0].text);
 
-    expect(postSpy).toHaveBeenCalledWith("/reports/domains", expect.objectContaining({
-      filters: [{ field: "classification", operator: "in", values: ["OWN"] }],
+    // classification should NOT be sent to API
+    expect(postSpy).toHaveBeenCalledWith("/reports/domains", expect.not.objectContaining({
+      filters: expect.anything(),
     }));
+    // only OWN rows should be returned
+    expect(parsed.rows).toHaveLength(1);
+    expect(parsed.rows[0].domain).toBe("own.com");
   });
 
   it("passes explicit filters to API", async () => {
