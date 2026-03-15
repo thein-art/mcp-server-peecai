@@ -12,6 +12,8 @@ import { registerChatContentTool } from "../src/tools/chat-content.js";
 import { registerBrandsReportTool } from "../src/tools/report-brands.js";
 import { registerDomainsReportTool } from "../src/tools/report-domains.js";
 import { registerUrlsReportTool } from "../src/tools/report-urls.js";
+import { registerSearchQueriesTool } from "../src/tools/queries-search.js";
+import { registerShoppingQueriesTool } from "../src/tools/queries-shopping.js";
 
 const TOOL_NAMES = [
   "list_projects",
@@ -25,6 +27,8 @@ const TOOL_NAMES = [
   "get_brands_report",
   "get_domains_report",
   "get_urls_report",
+  "search_queries",
+  "shopping_queries",
 ] as const;
 
 describe("tool annotations", () => {
@@ -42,10 +46,12 @@ describe("tool annotations", () => {
     registerBrandsReportTool(server, client);
     registerDomainsReportTool(server, client);
     registerUrlsReportTool(server, client);
+    registerSearchQueriesTool(server, client);
+    registerShoppingQueriesTool(server, client);
     return server;
   }
 
-  it("all 11 tools are registered", () => {
+  it("all 13 tools are registered", () => {
     const server = setup();
     const registered = Object.keys((server as any)._registeredTools);
     for (const name of TOOL_NAMES) {
