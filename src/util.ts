@@ -184,9 +184,9 @@ export function summaryForBrandsReport(rows: Record<string, unknown>[]): string 
 export function summaryForDomainsReport(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "0 domain rows returned";
   const top = rows.reduce((best, r) =>
-    ((r.usage_rate as number) ?? 0) > ((best.usage_rate as number) ?? 0) ? r : best
+    (r.usage_rate as number) > (best.usage_rate as number) ? r : best
   );
-  const pct = Math.round(((top.usage_rate as number) ?? 0) * 100);
+  const pct = Math.round((top.usage_rate as number) * 100);
   return `${rows.length} domain rows, top '${top.domain}' ${pct}% usage`;
 }
 

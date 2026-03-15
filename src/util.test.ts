@@ -446,8 +446,8 @@ describe("summaryForDomainsReport", () => {
     expect(summaryForDomainsReport([])).toBe("0 domain rows returned");
   });
 
-  it("handles missing usage_rate", () => {
-    const rows = [{ domain: "example.com" }];
+  it("handles zero usage_rate", () => {
+    const rows = [{ domain: "example.com", usage_rate: 0 }];
     expect(summaryForDomainsReport(rows)).toBe("1 domain rows, top 'example.com' 0% usage");
   });
 });
