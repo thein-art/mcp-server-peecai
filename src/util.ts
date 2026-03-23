@@ -52,9 +52,9 @@ export const dateSchema = z
  * tag_id (by category tag), topic_id (by topic group).
  */
 export const dimensionsSchema = z
-  .array(z.enum(["prompt_id", "model_id", "tag_id", "topic_id"]))
+  .array(z.enum(["prompt_id", "model_id", "tag_id", "topic_id", "date", "country_code"]))
   .describe(
-    "Breakdown dimensions. Each adds a grouping level to results: prompt_id (by search prompt), model_id (by AI model, e.g. ChatGPT/Perplexity), tag_id (by category tag), topic_id (by topic group). Multiple dimensions can be combined."
+    "Breakdown dimensions. Each adds a grouping level to results: prompt_id (by search prompt), model_id (by AI model, e.g. ChatGPT/Perplexity), tag_id (by category tag), topic_id (by topic group), date (by date), country_code (by country). Multiple dimensions can be combined."
   );
 
 const PROJECT_ID_PATTERN = /^or_[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/;
@@ -118,6 +118,12 @@ const BRAND_RAW_FIELDS = new Set([
   "position_count",
 ]);
 
+const DEPRECATED_FIELDS = new Set([
+  "usage_rate",
+  "citation_avg",
+  "usage_count",
+]);
+
 /**
  * Slims report rows for token-efficient MCP responses.
  * - Flattens dimension refs: `{ prompt: { id: "x" } }` → `{ prompt_id: "x" }`
@@ -148,6 +154,9 @@ export function slimReportRows(rows: ReportRow[]): Record<string, unknown>[] {
 
       // Drop brand raw sum/count fields
       if (BRAND_RAW_FIELDS.has(key)) continue;
+
+      // Drop deprecated fields from domain/url reports
+      if (DEPRECATED_FIELDS.has(key)) continue;
 
       // Drop null values for classification, title
       if (value === null && (key === "classification" || key === "title")) continue;
@@ -180,14 +189,14 @@ export function summaryForBrandsReport(rows: Record<string, unknown>[]): string 
   return `${rows.length} brand rows, top '${top.brand_name}' ${pct}% visibility${sov}`;
 }
 
-/** Summary for domain report: "12 domains, top 'example.com' 45% usage" */
+/** Summary for domain report: "12 domains, top 'example.com' 45% retrieval" */
 export function summaryForDomainsReport(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "0 domain rows returned";
   const top = rows.reduce((best, r) =>
-    (r.usage_rate as number) > (best.usage_rate as number) ? r : best
+    (r.retrieval_rate as number) > (best.retrieval_rate as number) ? r : best
   );
-  const pct = Math.round((top.usage_rate as number) * 100);
-  return `${rows.length} domain rows, top '${top.domain}' ${pct}% usage`;
+  const pct = Math.round((top.retrieval_rate as number) * 100);
+  return `${rows.length} domain rows, top '${top.domain}' ${pct}% retrieval`;
 }
 
 /** Summary for URL report: "8 URLs, top 'example.com/page' 15 citations" */

@@ -22,8 +22,8 @@ describe("get_domains_report tool", () => {
   it("returns slimmed rows with _summary", async () => {
     const { client, server } = setup();
     const apiData = [
-      { domain: "example.com", classification: "EDITORIAL", usage_rate: 0.45, citation_avg: 2.1 },
-      { domain: "test.org", classification: null, usage_rate: 0.12, citation_avg: 1.0 },
+      { domain: "example.com", classification: "EDITORIAL", retrieved_percentage: 0.45, retrieval_rate: 0.45, citation_rate: 2.1 },
+      { domain: "test.org", classification: null, retrieved_percentage: 0.12, retrieval_rate: 0.12, citation_rate: 1.0 },
     ];
     vi.spyOn(client, "post").mockResolvedValue(apiData);
 
@@ -31,7 +31,7 @@ describe("get_domains_report tool", () => {
     const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 });
     const parsed = JSON.parse(result.content[0].text);
 
-    expect(parsed._summary).toBe("2 domain rows, top 'example.com' 45% usage");
+    expect(parsed._summary).toBe("2 domain rows, top 'example.com' 45% retrieval");
     expect(parsed.rows).toHaveLength(2);
     // null classification should be dropped
     expect(parsed.rows[1]).not.toHaveProperty("classification");
@@ -40,8 +40,8 @@ describe("get_domains_report tool", () => {
   it("filters classification client-side", async () => {
     const { client, server } = setup();
     const apiData = [
-      { domain: "own.com", classification: "OWN", usage_rate: 0.5, citation_avg: 2.0 },
-      { domain: "editorial.com", classification: "EDITORIAL", usage_rate: 0.3, citation_avg: 1.0 },
+      { domain: "own.com", classification: "OWN", retrieved_percentage: 0.5, retrieval_rate: 0.5, citation_rate: 2.0 },
+      { domain: "editorial.com", classification: "EDITORIAL", retrieved_percentage: 0.3, retrieval_rate: 0.3, citation_rate: 1.0 },
     ];
     const postSpy = vi.spyOn(client, "post").mockResolvedValue(apiData);
 

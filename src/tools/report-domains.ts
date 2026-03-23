@@ -4,14 +4,14 @@ import { PeecApiClient } from "../api-client.js";
 import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, validateDateRange, slimReportRows, summaryForDomainsReport, toolResult, toolError } from "../util.js";
 import type { DomainReportRow } from "../types.js";
 
-const DOMAINS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "domain", "url"] as const;
+const DOMAINS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code"] as const;
 
 /** Registers the get_domains_report tool for domain classification, usage, and citation analytics. */
 export function registerDomainsReportTool(server: McpServer, client: PeecApiClient) {
   server.registerTool(
     "get_domains_report",
     {
-      description: "Get domain analytics report: usage_rate (0-1, share of chats citing this domain) and citation_avg (avg citations per chat). Classification values: OWN, CORPORATE, COMPETITOR, EDITORIAL, REFERENCE, INSTITUTIONAL, UGC, OTHER. Returns up to limit results (default: 100). Classification is filtered client-side after retrieval. Use filters array for server-side filtering by model, tag, topic, prompt, domain, or URL. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters.",
+      description: "Get domain analytics report: retrieval_rate, citation_rate, and retrieved_percentage. Classification values: OWN, CORPORATE, COMPETITOR, EDITORIAL, REFERENCE, INSTITUTIONAL, UGC, OTHER. Returns up to limit results (default: 100). Classification is filtered client-side after retrieval. Use filters array for server-side filtering by model, tag, topic, prompt, domain, URL, or country_code. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters.",
       inputSchema: {
         project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
         start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),

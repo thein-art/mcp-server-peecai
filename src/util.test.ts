@@ -304,14 +304,16 @@ describe("slimReportRows", () => {
     const input = [{
       domain: "example.com",
       classification: null,
-      usage_rate: 0.3,
-      citation_avg: 1.5,
+      retrieved_percentage: 0.3,
+      retrieval_rate: 0.3,
+      citation_rate: 1.5,
     }];
     const result = slimReportRows(input);
     expect(result).toEqual([{
       domain: "example.com",
-      usage_rate: 0.3,
-      citation_avg: 1.5,
+      retrieved_percentage: 0.3,
+      retrieval_rate: 0.3,
+      citation_rate: 1.5,
     }]);
   });
 
@@ -319,8 +321,9 @@ describe("slimReportRows", () => {
     const input = [{
       domain: "example.com",
       classification: "EDITORIAL",
-      usage_rate: 0.3,
-      citation_avg: 1.5,
+      retrieved_percentage: 0.3,
+      retrieval_rate: 0.3,
+      citation_rate: 1.5,
     }];
     const result = slimReportRows(input);
     expect(result[0].classification).toBe("EDITORIAL");
@@ -331,8 +334,9 @@ describe("slimReportRows", () => {
       domain: "example.com",
       classification: "EDITORIAL",
       prompt: { id: "pr_1" },
-      usage_rate: 0.3,
-      citation_avg: 1.5,
+      retrieved_percentage: 0.3,
+      retrieval_rate: 0.3,
+      citation_rate: 1.5,
     }];
     const result = slimReportRows(input);
     expect(result[0].prompt_id).toBe("pr_1");
@@ -344,17 +348,17 @@ describe("slimReportRows", () => {
       url: "https://example.com/page",
       classification: "ARTICLE",
       title: null,
-      usage_count: 5,
       citation_count: 10,
-      citation_avg: 2.0,
+      retrievals: 5,
+      citation_rate: 2.0,
     }];
     const result = slimReportRows(input);
     expect(result).toEqual([{
       url: "https://example.com/page",
       classification: "ARTICLE",
-      usage_count: 5,
       citation_count: 10,
-      citation_avg: 2.0,
+      retrievals: 5,
+      citation_rate: 2.0,
     }]);
   });
 
@@ -363,9 +367,9 @@ describe("slimReportRows", () => {
       url: "https://example.com/page",
       classification: "ARTICLE",
       title: "My Article",
-      usage_count: 5,
       citation_count: 10,
-      citation_avg: 2.0,
+      retrievals: 5,
+      citation_rate: 2.0,
     }];
     const result = slimReportRows(input);
     expect(result[0].title).toBe("My Article");
@@ -436,19 +440,19 @@ describe("summaryForBrandsReport", () => {
 describe("summaryForDomainsReport", () => {
   it("returns summary with top domain", () => {
     const rows = [
-      { domain: "example.com", usage_rate: 0.45 },
-      { domain: "test.org", usage_rate: 0.12 },
+      { domain: "example.com", retrieval_rate: 0.45 },
+      { domain: "test.org", retrieval_rate: 0.12 },
     ];
-    expect(summaryForDomainsReport(rows)).toBe("2 domain rows, top 'example.com' 45% usage");
+    expect(summaryForDomainsReport(rows)).toBe("2 domain rows, top 'example.com' 45% retrieval");
   });
 
   it("handles empty array", () => {
     expect(summaryForDomainsReport([])).toBe("0 domain rows returned");
   });
 
-  it("handles zero usage_rate", () => {
-    const rows = [{ domain: "example.com", usage_rate: 0 }];
-    expect(summaryForDomainsReport(rows)).toBe("1 domain rows, top 'example.com' 0% usage");
+  it("handles zero retrieval_rate", () => {
+    const rows = [{ domain: "example.com", retrieval_rate: 0 }];
+    expect(summaryForDomainsReport(rows)).toBe("1 domain rows, top 'example.com' 0% retrieval");
   });
 });
 

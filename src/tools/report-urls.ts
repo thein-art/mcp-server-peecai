@@ -4,14 +4,14 @@ import { PeecApiClient } from "../api-client.js";
 import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, validateDateRange, slimReportRows, summaryForUrlsReport, toolResult, toolError } from "../util.js";
 import type { UrlReportRow } from "../types.js";
 
-const URLS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "domain", "url"] as const;
+const URLS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code"] as const;
 
 /** Registers the get_urls_report tool for URL classification, usage, and citation analytics. */
 export function registerUrlsReportTool(server: McpServer, client: PeecApiClient) {
   server.registerTool(
     "get_urls_report",
     {
-      description: "Get URL analytics report: usage_count (chats citing this URL), citation_count (total citations), citation_avg (avg citations per chat). Classification values: HOMEPAGE, CATEGORY_PAGE, PRODUCT_PAGE, LISTICLE, COMPARISON, PROFILE, ALTERNATIVE, DISCUSSION, HOW_TO_GUIDE, ARTICLE, OTHER. Returns up to limit results (default: 100). Classification is filtered client-side after retrieval. Use filters array for server-side filtering by model, tag, topic, prompt, domain, or URL. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters.",
+      description: "Get URL analytics report: citation_count (total citations), retrievals (retrieval count), citation_rate. Classification values: HOMEPAGE, CATEGORY_PAGE, PRODUCT_PAGE, LISTICLE, COMPARISON, PROFILE, ALTERNATIVE, DISCUSSION, HOW_TO_GUIDE, ARTICLE, OTHER. Returns up to limit results (default: 100). Classification is filtered client-side after retrieval. Use filters array for server-side filtering by model, tag, topic, prompt, domain, URL, or country_code. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters.",
       inputSchema: {
         project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
         start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),
