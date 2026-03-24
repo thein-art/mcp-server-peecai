@@ -7348,7 +7348,8 @@
                                                             "TRIAL",
                                                             "TRIAL_ENDED",
                                                             "ONBOARDING",
-                                                            "DELETED"
+                                                            "DELETED",
+                                                            "API_PARTNER"
                                                         ]
                                                     }
                                                 },

@@ -18,7 +18,8 @@ export type ProjectStatus =
   | "TRIAL"
   | "TRIAL_ENDED"
   | "ONBOARDING"
-  | "DELETED";
+  | "DELETED"
+  | "API_PARTNER";
 
 /** A brand being tracked within a project, with its associated domains. */
 export interface Brand {
