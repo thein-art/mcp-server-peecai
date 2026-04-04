@@ -19,7 +19,8 @@ export type ProjectStatus =
   | "TRIAL_ENDED"
   | "ONBOARDING"
   | "DELETED"
-  | "API_PARTNER";
+  | "API_PARTNER"
+  | "PAUSED";
 
 /** A brand being tracked within a project, with its associated domains. */
 export interface Brand {
@@ -50,6 +51,22 @@ export interface Tag {
 }
 
 export interface Topic {
+  id: string;
+  name: string;
+}
+
+/** A suggested prompt that can be accepted or rejected. */
+export interface PromptSuggestion {
+  id: string;
+  messages: PromptMessage[];
+  tags: DimensionRef[];
+  topic: DimensionRef | null;
+  user_location: { country: string };
+  volume?: number;
+}
+
+/** A suggested topic that can be accepted or rejected. */
+export interface TopicSuggestion {
   id: string;
   name: string;
 }

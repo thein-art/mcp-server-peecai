@@ -11,6 +11,8 @@ function getHandler(server: McpServer, name: string) {
   return (server as any)._registeredTools[name].handler;
 }
 
+const mockExtra = { signal: new AbortController().signal, _meta: {}, sendNotification: vi.fn() };
+
 const VALID_PID = "or_00000000-0000-0000-0000-000000000001";
 
 afterEach(() => vi.restoreAllMocks());
@@ -32,7 +34,7 @@ describe("list_prompts tool", () => {
     vi.spyOn(client, "get").mockResolvedValue(prompts);
 
     const handler = getHandler(server, "list_prompts");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     expect(parsed._summary).toBe("2 prompts returned");
@@ -44,7 +46,7 @@ describe("list_prompts tool", () => {
     vi.spyOn(client, "get").mockRejectedValue(new Error("Forbidden"));
 
     const handler = getHandler(server, "list_prompts");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Forbidden");
@@ -53,10 +55,23 @@ describe("list_prompts tool", () => {
   it("rejects invalid project_id format", async () => {
     const { server } = setup();
     const handler = getHandler(server, "list_prompts");
-    const result = await handler({ project_id: "bad-id", limit: 1000, offset: 0 });
+    const result = await handler({ project_id: "bad-id", limit: 1000, offset: 0 }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("Invalid project_id format");
+  });
+
+  it("forwards topic_id and tag_id filters to API", async () => {
+    const { client, server } = setup();
+    const getSpy = vi.spyOn(client, "get").mockResolvedValue([]);
+
+    const handler = getHandler(server, "list_prompts");
+    await handler({ project_id: VALID_PID, topic_id: "tp_1", tag_id: "tg_2", limit: 100, offset: 0 }, mockExtra);
+
+    expect(getSpy).toHaveBeenCalledWith("/prompts", expect.objectContaining({
+      topic_id: "tp_1",
+      tag_id: "tg_2",
+    }), expect.any(AbortSignal));
   });
 });
 
@@ -74,7 +89,7 @@ describe("list_tags tool", () => {
     vi.spyOn(client, "get").mockResolvedValue(tags);
 
     const handler = getHandler(server, "list_tags");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     expect(parsed._summary).toBe("1 tag returned");
@@ -86,7 +101,7 @@ describe("list_tags tool", () => {
     vi.spyOn(client, "get").mockRejectedValue(new Error("Network error"));
 
     const handler = getHandler(server, "list_tags");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Network error");
@@ -111,7 +126,7 @@ describe("list_topics tool", () => {
     vi.spyOn(client, "get").mockResolvedValue(topics);
 
     const handler = getHandler(server, "list_topics");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     expect(parsed._summary).toBe("3 topics returned");
@@ -123,7 +138,7 @@ describe("list_topics tool", () => {
     vi.spyOn(client, "get").mockRejectedValue(new Error("Timeout"));
 
     const handler = getHandler(server, "list_topics");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Timeout");
@@ -147,7 +162,7 @@ describe("list_models tool", () => {
     vi.spyOn(client, "get").mockResolvedValue(models);
 
     const handler = getHandler(server, "list_models");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     expect(parsed._summary).toBe("2 models returned");
@@ -159,7 +174,7 @@ describe("list_models tool", () => {
     vi.spyOn(client, "get").mockRejectedValue(new Error("Server error"));
 
     const handler = getHandler(server, "list_models");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Server error");
@@ -186,7 +201,7 @@ describe("get_chat_content tool", () => {
     vi.spyOn(client, "getRaw").mockResolvedValue(chatContent);
 
     const handler = getHandler(server, "get_chat_content");
-    const result = await handler({ chat_id: "ch_abc-123", project_id: VALID_PID });
+    const result = await handler({ chat_id: "ch_abc-123", project_id: VALID_PID }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     expect(parsed._summary).toBe("Chat ch_abc-123: 2 messages, 1 sources, 1 brands");
@@ -198,7 +213,7 @@ describe("get_chat_content tool", () => {
     vi.spyOn(client, "getRaw").mockRejectedValue(new Error("Not found"));
 
     const handler = getHandler(server, "get_chat_content");
-    const result = await handler({ chat_id: "ch_abc-123", project_id: VALID_PID });
+    const result = await handler({ chat_id: "ch_abc-123", project_id: VALID_PID }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Not found");
@@ -207,7 +222,7 @@ describe("get_chat_content tool", () => {
   it("rejects invalid project_id format", async () => {
     const { server } = setup();
     const handler = getHandler(server, "get_chat_content");
-    const result = await handler({ chat_id: "ch_abc-123", project_id: "invalid" });
+    const result = await handler({ chat_id: "ch_abc-123", project_id: "invalid" }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("Invalid project_id format");
