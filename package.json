@@ -37,6 +37,7 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run tests/integration/",
     "check:api-drift": "bash scripts/check-api-drift.sh",
     "prepublishOnly": "npm run build"
   },
