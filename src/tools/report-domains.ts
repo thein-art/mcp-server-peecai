@@ -11,6 +11,7 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
   server.registerTool(
     "get_domains_report",
     {
+      title: "Domain Citation Report",
       description: "Get domain analytics report: retrieval_rate, citation_rate, and retrieved_percentage. Classification values: OWN, CORPORATE, COMPETITOR, EDITORIAL, REFERENCE, INSTITUTIONAL, UGC, OTHER. Returns up to limit results (default: 100). Classification is filtered client-side after retrieval. Use filters array for server-side filtering by model, tag, topic, prompt, domain, URL, or country_code. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters.",
       inputSchema: {
         project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
@@ -26,7 +27,7 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
       },
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ project_id, start_date, end_date, dimensions, classification, filters, limit, offset }) => {
+    async ({ project_id, start_date, end_date, dimensions, classification, filters, limit, offset }, extra) => {
       try {
         const dates = validateDateRange(start_date, end_date);
         const body: Record<string, unknown> = {
@@ -40,7 +41,15 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
 
         if (filters) body.filters = filters;
 
-        let data = await client.post<DomainReportRow[]>("/reports/domains", body);
+        if (extra._meta?.progressToken !== undefined) {
+          await extra.sendNotification({ method: "notifications/progress", params: { progressToken: extra._meta.progressToken, progress: 0, total: 2, message: "Fetching domain report..." } });
+        }
+
+        let data = await client.post<DomainReportRow[]>("/reports/domains", body, undefined, extra.signal);
+
+        if (extra._meta?.progressToken !== undefined) {
+          await extra.sendNotification({ method: "notifications/progress", params: { progressToken: extra._meta.progressToken, progress: 1, total: 2, message: "Processing results..." } });
+        }
         if (classification) {
           data = data.filter((row) => row.classification === classification);
         }

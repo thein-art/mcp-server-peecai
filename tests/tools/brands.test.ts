@@ -7,6 +7,8 @@ function getHandler(server: McpServer, name: string) {
   return (server as any)._registeredTools[name].handler;
 }
 
+const mockExtra = { signal: new AbortController().signal, _meta: {}, sendNotification: vi.fn() };
+
 describe("list_brands tool", () => {
   const VALID_PID = "or_00000000-0000-0000-0000-000000000001";
 
@@ -25,7 +27,7 @@ describe("list_brands tool", () => {
     vi.spyOn(client, "get").mockResolvedValue(brands);
 
     const handler = getHandler(server, "list_brands");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     expect(parsed._summary).toBe("1 brand returned");
@@ -37,7 +39,7 @@ describe("list_brands tool", () => {
     vi.spyOn(client, "get").mockRejectedValue(new Error("Unauthorized"));
 
     const handler = getHandler(server, "list_brands");
-    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 1000, offset: 0 }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Unauthorized");

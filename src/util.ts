@@ -60,6 +60,21 @@ export const dimensionsSchema = z
 const PROJECT_ID_PATTERN = /^or_[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/;
 
 /**
+ * Safe ID pattern — only allows alphanumeric chars, hyphens, and underscores.
+ * Prevents path traversal (../) and URL injection in entity IDs used in URL paths.
+ */
+const SAFE_ID_PATTERN = /^[\w-]{1,200}$/;
+
+/** Validates that an entity ID is safe for use in URL paths. Prevents path traversal attacks. */
+export function requireSafeId(id: string, label: string): string {
+  if (!SAFE_ID_PATTERN.test(id)) {
+    const safe = id.length > 60 ? id.slice(0, 60) + "…" : id.replace(/[^\w-]/g, "?");
+    throw new Error(`Invalid ${label} format: "${safe}". IDs must contain only letters, numbers, hyphens, and underscores.`);
+  }
+  return id;
+}
+
+/**
  * Resolves the project ID from an explicit parameter or the PEECAI_PROJECT_ID env var.
  * Validates format before returning to catch misconfigurations early with actionable errors.
  */
@@ -208,10 +223,11 @@ export function summaryForUrlsReport(rows: Record<string, unknown>[]): string {
   return `${rows.length} URL rows, top '${top.url}' ${top.citation_count} citations`;
 }
 
-/** Formats a successful MCP tool response with compact JSON to minimize token usage. */
-export function toolResult(data: unknown) {
+/** Formats a successful MCP tool response with compact JSON and structured content. */
+export function toolResult(data: Record<string, unknown>) {
   return {
     content: [{ type: "text" as const, text: JSON.stringify(data) }],
+    structuredContent: data,
   };
 }
 

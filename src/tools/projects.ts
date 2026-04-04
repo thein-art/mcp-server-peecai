@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
 import { summaryForList, toolResult, toolError } from "../util.js";
+import { projectsOutput } from "../schemas.js";
 import type { Project } from "../types.js";
 
 /** Registers the list_projects tool for retrieving all company projects. */
@@ -9,16 +10,18 @@ export function registerProjectsTool(server: McpServer, client: PeecApiClient) {
   server.registerTool(
     "list_projects",
     {
+      title: "List Projects",
       description: "List all Peec AI projects for the company. Returns project IDs, names, and statuses. Status values: CUSTOMER (active, ongoing monitoring), CUSTOMER_ENDED, PITCH (active demo), PITCH_ENDED (completed demo), TRIAL, TRIAL_ENDED, ONBOARDING, DELETED. Use CUSTOMER projects for current data.",
       inputSchema: {
         limit: z.number().min(1).max(10000).default(1000).describe("Max results to return (1-10000)").optional(),
         offset: z.number().min(0).default(0).describe("Number of results to skip").optional(),
       },
+      outputSchema: projectsOutput,
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ limit, offset }) => {
+    async ({ limit, offset }, extra) => {
       try {
-        const data = await client.get<Project[]>("/projects", { limit, offset });
+        const data = await client.get<Project[]>("/projects", { limit, offset }, extra.signal);
         return toolResult({ _summary: summaryForList("projects", data), projects: data });
       } catch (e) {
         return toolError(e);

@@ -8,6 +8,8 @@ function getHandler(server: McpServer, name: string) {
   return (server as any)._registeredTools[name].handler;
 }
 
+const mockExtra = { signal: new AbortController().signal, _meta: {}, sendNotification: vi.fn() };
+
 describe("search_queries tool", () => {
   const VALID_PID = "or_00000000-0000-0000-0000-000000000001";
 
@@ -54,7 +56,7 @@ describe("search_queries tool", () => {
       end_date: "2025-01-31",
       limit: 100,
       offset: 0,
-    });
+    }, mockExtra);
 
     expect(result.isError).toBeUndefined();
     const parsed = JSON.parse(result.content[0].text);
@@ -75,17 +77,17 @@ describe("search_queries tool", () => {
       filters: [{ field: "model_id", operator: "in", values: ["m1"] }],
       limit: 100,
       offset: 0,
-    });
+    }, mockExtra);
 
     expect(postSpy).toHaveBeenCalledWith("/queries/search", expect.objectContaining({
       filters: [{ field: "model_id", operator: "in", values: ["m1"] }],
-    }));
+    }), undefined, expect.any(AbortSignal));
   });
 
   it("returns error for missing project_id", async () => {
     const { server } = setup();
     const handler = getHandler(server, "search_queries");
-    const result = await handler({ limit: 100, offset: 0 });
+    const result = await handler({ limit: 100, offset: 0 }, mockExtra);
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("Missing project_id");
   });

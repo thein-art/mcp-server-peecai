@@ -7,6 +7,8 @@ function getHandler(server: McpServer, name: string) {
   return (server as any)._registeredTools[name].handler;
 }
 
+const mockExtra = { signal: new AbortController().signal, _meta: {}, sendNotification: vi.fn() };
+
 describe("get_brands_report tool", () => {
   const VALID_PID = "or_00000000-0000-0000-0000-000000000001";
 
@@ -37,7 +39,7 @@ describe("get_brands_report tool", () => {
     vi.spyOn(client, "post").mockResolvedValue(apiData);
 
     const handler = getHandler(server, "get_brands_report");
-    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     expect(parsed._summary).toBe("1 brand rows, top 'Alpha' 82% visibility, 45% SoV");
@@ -56,11 +58,11 @@ describe("get_brands_report tool", () => {
     const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
 
     const handler = getHandler(server, "get_brands_report");
-    await handler({ project_id: VALID_PID, brand_id: "br_1", limit: 100, offset: 0 });
+    await handler({ project_id: VALID_PID, brand_id: "br_1", limit: 100, offset: 0 }, mockExtra);
 
     expect(postSpy).toHaveBeenCalledWith("/reports/brands", expect.objectContaining({
       filters: [{ field: "brand_id", operator: "in", values: ["br_1"] }],
-    }));
+    }), undefined, expect.any(AbortSignal));
   });
 
   it("passes explicit filters to API", async () => {
@@ -69,11 +71,11 @@ describe("get_brands_report tool", () => {
 
     const handler = getHandler(server, "get_brands_report");
     const filters = [{ field: "model_id", operator: "in", values: ["m1"] }];
-    await handler({ project_id: VALID_PID, filters, limit: 100, offset: 0 });
+    await handler({ project_id: VALID_PID, filters, limit: 100, offset: 0 }, mockExtra);
 
     expect(postSpy).toHaveBeenCalledWith("/reports/brands", expect.objectContaining({
       filters: [{ field: "model_id", operator: "in", values: ["m1"] }],
-    }));
+    }), undefined, expect.any(AbortSignal));
   });
 
   it("merges brand_id shortcut with explicit filters", async () => {
@@ -82,7 +84,7 @@ describe("get_brands_report tool", () => {
 
     const handler = getHandler(server, "get_brands_report");
     const filters = [{ field: "model_id", operator: "in", values: ["m1"] }];
-    await handler({ project_id: VALID_PID, brand_id: "br_1", filters, limit: 100, offset: 0 });
+    await handler({ project_id: VALID_PID, brand_id: "br_1", filters, limit: 100, offset: 0 }, mockExtra);
 
     const sentBody = postSpy.mock.calls[0][1];
     expect(sentBody.filters).toHaveLength(2);
@@ -93,7 +95,7 @@ describe("get_brands_report tool", () => {
     vi.spyOn(client, "post").mockRejectedValue(new Error("Service unavailable"));
 
     const handler = getHandler(server, "get_brands_report");
-    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Service unavailable");

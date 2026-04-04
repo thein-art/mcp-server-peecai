@@ -4,49 +4,98 @@ const BASE_URL = "https://api.peec.ai/customer/v1";
 const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_ERROR_LENGTH = 500;
 
+/** Callback for structured logging of API events. */
+export type ApiLogCallback = (level: "error" | "warning" | "info", data: Record<string, unknown>) => void;
+
 /**
  * HTTP client for the Peec AI Customer API.
  * Handles authentication, query parameters, timeouts, and error formatting.
  */
 export class PeecApiClient {
   private readonly apiKey: string;
+  private readonly onLog?: ApiLogCallback;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, onLog?: ApiLogCallback) {
     this.apiKey = apiKey;
+    this.onLog = onLog;
   }
 
   /** GET request that unwraps the `{ data: T }` envelope. Use for list/paginated endpoints. */
-  async get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
-    const response = await this.request(path, { method: "GET", params });
+  async get<T>(path: string, params?: Record<string, string | number | undefined>, signal?: AbortSignal): Promise<T> {
+    const response = await this.request(path, { method: "GET", params, signal });
     const json = await response.json() as ApiResponse<T>;
     return json.data;
   }
 
   /** GET request that returns the response body directly. Use for endpoints without a `data` envelope (e.g. chat content). */
-  async getRaw<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
-    const response = await this.request(path, { method: "GET", params });
+  async getRaw<T>(path: string, params?: Record<string, string | number | undefined>, signal?: AbortSignal): Promise<T> {
+    const response = await this.request(path, { method: "GET", params, signal });
     return response.json() as Promise<T>;
   }
 
   /** POST request that unwraps the `{ data: T }` envelope. Use for analytics report endpoints. */
-  async post<T>(path: string, body: Record<string, unknown>, params?: Record<string, string | undefined>): Promise<T> {
+  async post<T>(path: string, body: Record<string, unknown>, params?: Record<string, string | undefined>, signal?: AbortSignal): Promise<T> {
     const response = await this.request(path, {
       method: "POST",
       params,
       body: JSON.stringify(body),
       extraHeaders: { "Content-Type": "application/json" },
+      signal,
     });
     const json = await response.json() as ApiResponse<T>;
     return json.data;
   }
 
+  /** POST request that returns the response body directly. Use for create endpoints without `data` envelope. */
+  async postRaw<T>(path: string, body: Record<string, unknown>, params?: Record<string, string | undefined>, signal?: AbortSignal): Promise<T> {
+    const response = await this.request(path, {
+      method: "POST",
+      params,
+      body: JSON.stringify(body),
+      extraHeaders: { "Content-Type": "application/json" },
+      signal,
+    });
+    return response.json() as Promise<T>;
+  }
+
+  /** PATCH request that unwraps the `{ data: T }` envelope. Use for update endpoints. */
+  async patch<T>(path: string, body: Record<string, unknown>, params?: Record<string, string | undefined>, signal?: AbortSignal): Promise<T> {
+    const response = await this.request(path, {
+      method: "PATCH",
+      params,
+      body: JSON.stringify(body),
+      extraHeaders: { "Content-Type": "application/json" },
+      signal,
+    });
+    const json = await response.json() as ApiResponse<T>;
+    return json.data;
+  }
+
+  /** PATCH request that returns the response body directly. Use for update endpoints without `data` envelope. */
+  async patchRaw<T>(path: string, body: Record<string, unknown>, params?: Record<string, string | undefined>, signal?: AbortSignal): Promise<T> {
+    const response = await this.request(path, {
+      method: "PATCH",
+      params,
+      body: JSON.stringify(body),
+      extraHeaders: { "Content-Type": "application/json" },
+      signal,
+    });
+    return response.json() as Promise<T>;
+  }
+
+  /** DELETE request. Returns void — the API returns an empty body on success. */
+  async delete(path: string, params?: Record<string, string | undefined>, signal?: AbortSignal): Promise<void> {
+    await this.request(path, { method: "DELETE", params, signal });
+  }
+
   private async request(
     path: string,
     options: {
-      method: "GET" | "POST";
+      method: "GET" | "POST" | "PATCH" | "DELETE";
       params?: Record<string, string | number | undefined>;
       body?: string;
       extraHeaders?: Record<string, string>;
+      signal?: AbortSignal;
     },
   ): Promise<Response> {
     const url = new URL(`${BASE_URL}${path}`);
@@ -58,6 +107,12 @@ export class PeecApiClient {
       }
     }
 
+    // Combine caller signal (MCP cancellation) with timeout signal
+    const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+    const signal = options.signal
+      ? AbortSignal.any([options.signal, timeoutSignal])
+      : timeoutSignal;
+
     const response = await fetch(url.toString(), {
       method: options.method,
       headers: {
@@ -66,11 +121,13 @@ export class PeecApiClient {
         ...options.extraHeaders,
       },
       body: options.body,
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal,
     });
 
     if (!response.ok) {
-      throw new Error(await this.formatError(response));
+      const errorMessage = await this.formatError(response);
+      this.onLog?.("error", { endpoint: path, method: options.method, status: response.status, message: errorMessage });
+      throw new Error(errorMessage);
     }
 
     return response;

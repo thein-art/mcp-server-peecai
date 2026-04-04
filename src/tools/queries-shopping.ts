@@ -11,6 +11,7 @@ export function registerShoppingQueriesTool(server: McpServer, client: PeecApiCl
   server.registerTool(
     "shopping_queries",
     {
+      title: "Shopping Queries",
       description: "Get shopping/product queries that AI models generated when answering prompts. Returns product-related queries with associated product names. Useful for understanding product recommendations by AI models. Without date filters, returns data across all available dates. Empty results may indicate the project has no query data for the given time range or filters.",
       inputSchema: {
         project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
@@ -22,7 +23,7 @@ export function registerShoppingQueriesTool(server: McpServer, client: PeecApiCl
       },
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ project_id, start_date, end_date, filters, limit, offset }) => {
+    async ({ project_id, start_date, end_date, filters, limit, offset }, extra) => {
       try {
         const dates = validateDateRange(start_date, end_date);
         const body: Record<string, unknown> = {
@@ -34,7 +35,7 @@ export function registerShoppingQueriesTool(server: McpServer, client: PeecApiCl
         body.limit = limit;
         body.offset = offset;
 
-        const data = await client.post<ShoppingQueryRow[]>("/queries/shopping", body);
+        const data = await client.post<ShoppingQueryRow[]>("/queries/shopping", body, undefined, extra.signal);
         const rows = data.map((row) => ({
           prompt_id: row.prompt.id,
           chat_id: row.chat.id,

@@ -1,18 +1,31 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { completable } from "@modelcontextprotocol/sdk/server/completable.js";
 import { z } from "zod";
 import type { PeecApiClient } from "./api-client.js";
 import { requireProjectId } from "./util.js";
-import type { Brand, Model, Prompt } from "./types.js";
+import type { Brand, Model, Prompt, Project } from "./types.js";
 
 /** Registers guided workflow prompts for common Peec AI analytics tasks. */
 export function registerPromptTemplates(server: McpServer, client: PeecApiClient) {
+  const projectIdSchema = completable(
+    z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)"),
+    async () => {
+      try {
+        const projects = await client.get<Project[]>("/projects", { limit: 100 });
+        return projects.map((p) => p.id);
+      } catch {
+        return [];
+      }
+    },
+  );
+
   server.registerPrompt(
     "brand-visibility-analysis",
     {
       title: "Brand Visibility Analysis",
       description: "Analyze brand visibility, sentiment, and position across AI models for a project.",
       argsSchema: {
-        project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
+        project_id: projectIdSchema.optional(),
         period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
       },
     },
@@ -80,7 +93,7 @@ export function registerPromptTemplates(server: McpServer, client: PeecApiClient
       title: "Competitive Gap Analysis",
       description: "Compare own brand vs competitors — identify visibility gaps across prompts and models.",
       argsSchema: {
-        project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
+        project_id: projectIdSchema.optional(),
         period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
       },
     },
@@ -158,7 +171,7 @@ export function registerPromptTemplates(server: McpServer, client: PeecApiClient
       title: "AI Search Citation Report",
       description: "Analyze which URLs and domains get cited in AI responses — find content optimization opportunities.",
       argsSchema: {
-        project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted)").optional(),
+        project_id: projectIdSchema.optional(),
         period: z.enum(["7d", "28d", "90d"]).default("28d").describe("Analysis period"),
       },
     },

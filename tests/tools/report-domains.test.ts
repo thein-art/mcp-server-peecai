@@ -7,6 +7,8 @@ function getHandler(server: McpServer, name: string) {
   return (server as any)._registeredTools[name].handler;
 }
 
+const mockExtra = { signal: new AbortController().signal, _meta: {}, sendNotification: vi.fn() };
+
 describe("get_domains_report tool", () => {
   const VALID_PID = "or_00000000-0000-0000-0000-000000000001";
 
@@ -28,7 +30,7 @@ describe("get_domains_report tool", () => {
     vi.spyOn(client, "post").mockResolvedValue(apiData);
 
     const handler = getHandler(server, "get_domains_report");
-    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     expect(parsed._summary).toBe("2 domain rows, top 'example.com' 45% retrieval");
@@ -46,13 +48,13 @@ describe("get_domains_report tool", () => {
     const postSpy = vi.spyOn(client, "post").mockResolvedValue(apiData);
 
     const handler = getHandler(server, "get_domains_report");
-    const result = await handler({ project_id: VALID_PID, classification: "OWN", limit: 100, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, classification: "OWN", limit: 100, offset: 0 }, mockExtra);
     const parsed = JSON.parse(result.content[0].text);
 
     // classification should NOT be sent to API
     expect(postSpy).toHaveBeenCalledWith("/reports/domains", expect.not.objectContaining({
       filters: expect.anything(),
-    }));
+    }), undefined, expect.any(AbortSignal));
     // only OWN rows should be returned
     expect(parsed.rows).toHaveLength(1);
     expect(parsed.rows[0].domain).toBe("own.com");
@@ -64,11 +66,11 @@ describe("get_domains_report tool", () => {
 
     const handler = getHandler(server, "get_domains_report");
     const filters = [{ field: "domain", operator: "in", values: ["example.com"] }];
-    await handler({ project_id: VALID_PID, filters, limit: 100, offset: 0 });
+    await handler({ project_id: VALID_PID, filters, limit: 100, offset: 0 }, mockExtra);
 
     expect(postSpy).toHaveBeenCalledWith("/reports/domains", expect.objectContaining({
       filters: [{ field: "domain", operator: "in", values: ["example.com"] }],
-    }));
+    }), undefined, expect.any(AbortSignal));
   });
 
   it("returns error on API failure", async () => {
@@ -76,7 +78,7 @@ describe("get_domains_report tool", () => {
     vi.spyOn(client, "post").mockRejectedValue(new Error("Bad gateway"));
 
     const handler = getHandler(server, "get_domains_report");
-    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 });
+    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 }, mockExtra);
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Bad gateway");

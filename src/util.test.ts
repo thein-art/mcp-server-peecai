@@ -475,17 +475,15 @@ describe("toolResult", () => {
     const result = toolResult({ id: "1", name: "Test" });
     expect(result).toEqual({
       content: [{ type: "text", text: '{"id":"1","name":"Test"}' }],
+      structuredContent: { id: "1", name: "Test" },
     });
   });
 
-  it("handles arrays", () => {
-    const result = toolResult([1, 2, 3]);
-    expect(result.content[0].text).toBe("[1,2,3]");
-  });
-
-  it("handles null", () => {
-    const result = toolResult(null);
-    expect(result.content[0].text).toBe("null");
+  it("includes structuredContent alongside content", () => {
+    const data = { _summary: "2 items", items: [1, 2] };
+    const result = toolResult(data);
+    expect(result.structuredContent).toEqual(data);
+    expect(result.content[0].text).toBe(JSON.stringify(data));
   });
 });
 

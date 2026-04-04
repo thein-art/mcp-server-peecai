@@ -11,6 +11,7 @@ export function registerBrandsReportTool(server: McpServer, client: PeecApiClien
   server.registerTool(
     "get_brands_report",
     {
+      title: "Brand Visibility Report",
       description: "Get brand analytics report per brand. Metrics: visibility (visibility_count/visibility_total), share_of_voice (0-1), mention_count, sentiment (0-100 scale, 50=neutral), position (avg rank when mentioned, lower=better). Returns up to limit results (default: 100). Use brand_id shortcut or filters array for server-side filtering. Supports date filtering and dimensional breakdowns. Without date filters, returns data across all available dates. Empty results may indicate the project has no report data for the given time range or filters — try a broader date range or fewer filters.",
       inputSchema: {
         project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
@@ -26,7 +27,7 @@ export function registerBrandsReportTool(server: McpServer, client: PeecApiClien
       },
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ project_id, start_date, end_date, dimensions, brand_id, filters, limit, offset }) => {
+    async ({ project_id, start_date, end_date, dimensions, brand_id, filters, limit, offset }, extra) => {
       try {
         const dates = validateDateRange(start_date, end_date);
         const body: Record<string, unknown> = {
@@ -41,7 +42,15 @@ export function registerBrandsReportTool(server: McpServer, client: PeecApiClien
         const merged = mergeFilters(filters, { field: "brand_id", value: brand_id });
         if (merged) body.filters = merged;
 
-        const data = await client.post<BrandReportRow[]>("/reports/brands", body);
+        if (extra._meta?.progressToken !== undefined) {
+          await extra.sendNotification({ method: "notifications/progress", params: { progressToken: extra._meta.progressToken, progress: 0, total: 2, message: "Fetching brand report..." } });
+        }
+
+        const data = await client.post<BrandReportRow[]>("/reports/brands", body, undefined, extra.signal);
+
+        if (extra._meta?.progressToken !== undefined) {
+          await extra.sendNotification({ method: "notifications/progress", params: { progressToken: extra._meta.progressToken, progress: 1, total: 2, message: "Processing results..." } });
+        }
         const rows = slimReportRows(data);
         return toolResult({ _summary: summaryForBrandsReport(rows), rows });
       } catch (e) {

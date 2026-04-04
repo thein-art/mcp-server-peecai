@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
 import { requireProjectId, dateSchema, validateDateRange, summaryForList, toolResult, toolError } from "../util.js";
+import { chatsOutput } from "../schemas.js";
 import type { Chat } from "../types.js";
 
 /** Registers the list_chats tool for retrieving AI chat interactions with optional date filtering. */
@@ -9,6 +10,7 @@ export function registerChatsTool(server: McpServer, client: PeecApiClient) {
   server.registerTool(
     "list_chats",
     {
+      title: "List Chats",
       description: "List AI chat interactions tracked by Peec AI. Returns up to limit results (default: 100). Recommended: use date filters to scope results. Returns chat IDs, prompt/model refs, and dates. Without date filters, returns all chats.",
       inputSchema: {
         project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
@@ -20,9 +22,10 @@ export function registerChatsTool(server: McpServer, client: PeecApiClient) {
         limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)").optional(),
         offset: z.number().min(0).default(0).describe("Results to skip").optional(),
       },
+      outputSchema: chatsOutput,
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ project_id, start_date, end_date, brand_id, prompt_id, model_id, limit, offset }) => {
+    async ({ project_id, start_date, end_date, brand_id, prompt_id, model_id, limit, offset }, extra) => {
       try {
         const dates = validateDateRange(start_date, end_date);
         const data = await client.get<Chat[]>("/chats", {
@@ -34,7 +37,7 @@ export function registerChatsTool(server: McpServer, client: PeecApiClient) {
           model_id,
           limit,
           offset,
-        });
+        }, extra.signal);
         return toolResult({ _summary: summaryForList("chats", data), chats: data });
       } catch (e) {
         return toolError(e);
