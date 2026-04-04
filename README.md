@@ -8,7 +8,7 @@
 <p align="center">
   <a href="https://github.com/thein-art/mcp-server-peecai/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/thein-art/mcp-server-peecai/ci.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen?style=flat-square&logo=node.js&logoColor=white" alt="Node.js >= 22">
-  <img src="https://img.shields.io/badge/MCP-compatible-0098FF?style=flat-square" alt="MCP compatible">
+  <img src="https://img.shields.io/badge/MCP-2025--11--25-0098FF?style=flat-square" alt="MCP 2025-11-25">
   <a href="./LICENSE"><img src="https://img.shields.io/github/license/thein-art/mcp-server-peecai?style=flat-square" alt="License"></a>
   <a href="https://www.npmjs.com/package/mcp-server-peecai"><img src="https://img.shields.io/npm/v/mcp-server-peecai?style=flat-square" alt="npm"></a>
   <a href="https://www.npmjs.com/package/mcp-server-peecai"><img src="https://img.shields.io/npm/dm/mcp-server-peecai?style=flat-square" alt="Downloads"></a>
@@ -22,13 +22,15 @@
 
 ## What it does
 
-Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 13 tools covering projects, brands, prompts, chats, query analysis, and analytics reports.
+Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 31 tools covering projects, brands, prompts, chats, query analysis, analytics reports, and full CRUD operations.
 
 **Key capabilities:**
 - Query brand visibility, sentiment, and position across AI models
 - Analyze which domains and URLs get cited in AI responses
 - Inspect individual chat interactions with full source attribution
-- Slice data by model, prompt, category tag, or topic
+- Slice data by model, prompt, category tag, topic, country, or date
+- Create, update, and delete brands, prompts, tags, and topics (opt-in)
+- Review and act on AI-generated prompt and topic suggestions
 
 ## Quick Start
 
@@ -104,10 +106,10 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 
 ## Tools
 
-### Data Retrieval
+### Data Retrieval (15 tools)
 
 **`list_projects`** — List all projects for the company.
-- Returns: project IDs, names, statuses (`CUSTOMER` = active, `PITCH_ENDED` = completed)
+- Returns: project IDs, names, statuses (`CUSTOMER` = active, `PITCH` = demo)
 - Parameters: `limit`, `offset`
 
 **`list_brands`** — List tracked brands with their associated domains.
@@ -115,7 +117,7 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 
 **`list_prompts`** — List monitored search prompts.
 - Returns: prompt messages, tags, topics, user location, search volume
-- Parameters: `project_id`, `limit`, `offset`
+- Parameters: `project_id`, `topic_id`, `tag_id`, `limit`, `offset`
 
 **`list_tags`** — List category tags for a project.
 - Parameters: `project_id`, `limit`, `offset`
@@ -127,17 +129,23 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 - Returns: model IDs and active status
 - Parameters: `project_id`, `limit`, `offset`
 
-**`list_chats`** — List AI chat interactions with optional date filtering.
+**`list_chats`** — List AI chat interactions with optional date and dimension filtering.
 - Returns: chat IDs, prompt/model refs, dates
-- Parameters: `project_id`, `start_date`, `end_date`, `limit`, `offset`
+- Parameters: `project_id`, `start_date`, `end_date`, `brand_id`, `prompt_id`, `model_id`, `limit`, `offset`
 
 **`get_chat_content`** — Get full content of a specific chat.
 - Returns: sources (URLs, domains, citation counts), brands mentioned, messages, queries, products
 - Parameters: `chat_id`, `project_id`
 
+**`list_prompt_suggestions`** — List AI-generated prompt suggestions.
+- Parameters: `project_id`, `topic_id`, `limit`, `offset`
+
+**`list_topic_suggestions`** — List AI-generated topic suggestions.
+- Parameters: `project_id`, `limit`, `offset`
+
 ### Analytics Reports
 
-All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `model_id`, `tag_id`, `topic_id`. Date filtering via `start_date` / `end_date` (YYYY-MM-DD). All report tools also accept a `filters` parameter for server-side filtering (`field`, `operator: "in" | "not_in"`, `values`). Convenience shortcut `brand_id` is available for the brands report.
+All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `model_id`, `tag_id`, `topic_id`, `date`, `country_code`. Date filtering via `start_date` / `end_date` (YYYY-MM-DD). Server-side filtering via `filters` parameter (`field`, `operator: "in" | "not_in"`, `values`).
 
 **`get_brands_report`** — Brand analytics per brand.
 
@@ -153,36 +161,57 @@ All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `
 
 | Metric | Description |
 |--------|-------------|
-| `usage_rate` | Share of chats citing this domain (0–1) |
-| `citation_avg` | Average citations per chat |
+| `retrieval_rate` | Share of chats retrieving this domain (0–1) |
+| `citation_rate` | Average citations per retrieval |
 | `classification` | `OWN`, `CORPORATE`, `COMPETITOR`, `EDITORIAL`, `REFERENCE`, `INSTITUTIONAL`, `UGC`, `OTHER` |
 
 **`get_urls_report`** — URL-level analytics.
 
 | Metric | Description |
 |--------|-------------|
-| `usage_count` | Number of chats citing this URL |
+| `retrievals` | Number of chats retrieving this URL |
 | `citation_count` | Total citations across all chats |
-| `citation_avg` | Average citations per chat |
+| `citation_rate` | Average citations per retrieval |
 | `classification` | `HOMEPAGE`, `PRODUCT_PAGE`, `CATEGORY_PAGE`, `LISTICLE`, `COMPARISON`, `ARTICLE`, `HOW_TO_GUIDE`, `PROFILE`, `ALTERNATIVE`, `DISCUSSION`, `OTHER` |
 
 ### Query Analysis
 
 **`search_queries`** — Get search queries AI models generated when answering prompts.
-- Returns: actual search queries models used, with prompt/model/chat refs
 - Parameters: `project_id`, `start_date`, `end_date`, `filters`, `limit`, `offset`
 
 **`shopping_queries`** — Get shopping/product queries AI models generated.
-- Returns: product-related queries with associated product names
 - Parameters: `project_id`, `start_date`, `end_date`, `filters`, `limit`, `offset`
+
+### Write Operations (16 tools, opt-in)
+
+Write tools are **disabled by default** for safety. Enable them by setting `PEECAI_ALLOW_WRITES=true`.
+
+When disabled, these tools are completely invisible — they don't appear in `tools/list` and cannot be called by any client.
+
+| Entity | Create | Update | Delete |
+|--------|--------|--------|--------|
+| Brands | `create_brand` | `update_brand` | `delete_brand` |
+| Prompts | `create_prompt` | `update_prompt` | `delete_prompt` |
+| Tags | `create_tag` | `update_tag` | `delete_tag` |
+| Topics | `create_topic` | `update_topic` | `delete_topic` |
+
+| Suggestions | Accept | Reject |
+|-------------|--------|--------|
+| Prompt suggestions | `accept_prompt_suggestion` | `reject_prompt_suggestion` |
+| Topic suggestions | `accept_topic_suggestion` | `reject_topic_suggestion` |
+
+Delete operations are soft-deletes and **irreversible through the API**. Delete tools carry `destructiveHint: true` in their MCP annotations, causing clients like Claude Code to require explicit user approval before execution.
 
 ### Tool Annotations
 
-| Tool | Read-only | Idempotent | Destructive |
-|------|:---------:|:----------:|:-----------:|
-| All 13 tools | Yes | Yes | No |
-
-All tools are read-only GET/POST queries against the Peec AI API. No data is modified.
+| Tool type | Read-only | Idempotent | Destructive |
+|-----------|:---------:|:----------:|:-----------:|
+| All read tools (15) | Yes | Yes | No |
+| Create (4) | No | No | No |
+| Update (4) | No | Yes | No |
+| Delete (4) | No | Yes | **Yes** |
+| Accept suggestion (2) | No | No | No |
+| Reject suggestion (2) | No | Yes | No |
 
 ## Resources
 
@@ -197,9 +226,11 @@ MCP resources provide reference data that clients can fetch without a tool call.
 | `peecai://projects/{project_id}/models` | Template | AI models for a project |
 | `peecai://projects/{project_id}/prompts` | Template | Prompts for a project |
 
+Resource templates support listing — clients can enumerate available resources across all projects.
+
 ## Prompt Templates
 
-Guided analytical workflows available as MCP prompts:
+Guided analytical workflows available as MCP prompts. All prompts support `project_id` autocompletion.
 
 | Prompt | Description |
 |--------|-------------|
@@ -215,9 +246,10 @@ Guided analytical workflows available as MCP prompts:
 "Which domains get cited most in AI search results?"
 "Compare brand sentiment across ChatGPT and Perplexity"
 "Show me the full chat content for chat ID abc-123"
-"Get URL report broken down by AI model"
+"Get URL report broken down by AI model and country"
 "What search queries do AI models use when answering my prompts?"
-"Show shopping queries generated by AI models last month"
+"Create a brand 'My Brand' with domain mybrand.com"
+"Add a new prompt: 'best CRM software 2025' for country DE"
 ```
 
 ## Environment Variables
@@ -226,6 +258,19 @@ Guided analytical workflows available as MCP prompts:
 |----------|:--------:|-------------|
 | `PEECAI_API_KEY` | Yes | API key from [app.peec.ai](https://app.peec.ai/api-keys) |
 | `PEECAI_PROJECT_ID` | No | Default project ID — saves repeating it in every tool call |
+| `PEECAI_ALLOW_WRITES` | No | Set to `true` to enable write operations (create/update/delete). Disabled by default for safety. |
+
+## MCP Protocol Features
+
+This server implements the MCP 2025-11-25 specification:
+
+- **Structured content** — list tools return `structuredContent` alongside text for type-safe client parsing
+- **Tool annotations** — `readOnlyHint`, `destructiveHint`, `idempotentHint` on every tool
+- **Progress notifications** — report tools send progress updates when the client provides a `progressToken`
+- **Structured logging** — API errors are sent as MCP log notifications with endpoint, status, and message context
+- **Prompt completions** — `project_id` argument supports autocompletion via `completable()`
+- **Resource templates** — with `list` callbacks for enumerating resources across projects
+- **Cancellation support** — all tools forward the MCP `AbortSignal` to API calls
 
 ## API Drift Detection
 
@@ -237,12 +282,6 @@ npm run check:api-drift
 
 - **No drift**: exit code 0, snapshot is current
 - **Drift detected**: exit code 1, shows a diff of changes
-
-When drift is detected:
-1. Review the diff to understand what changed
-2. Update the snapshot: `curl -s https://api.peec.ai/customer/v1/openapi/json -o api-spec/openapi-snapshot.json`
-3. Update `src/types.ts` and tools as needed
-4. Run tests to verify
 
 No API key is required — the OpenAPI spec is publicly accessible.
 
@@ -256,41 +295,58 @@ No API key is required — the OpenAPI spec is publicly accessible.
 ### Commands
 
 ```bash
-npm install          # Install dependencies
-npm run build        # Compile TypeScript to dist/
-npm run dev          # Watch mode — recompile on changes
-npm test             # Run tests
-npm run test:watch   # Run tests in watch mode
+npm install              # Install dependencies
+npm run build            # Compile TypeScript to dist/
+npm run dev              # Watch mode — recompile on changes
+npm test                 # Run unit tests (358 tests)
+npm run test:watch       # Run tests in watch mode
+npm run test:integration # Run integration tests (requires PEECAI_API_KEY)
 npm run check:api-drift  # Check for API spec changes
+```
+
+### Integration Tests
+
+Integration tests hit the live Peec AI API and are skipped by default in `npm test`.
+
+```bash
+# Read-only smoke test (all 15 read tools + prompts + resources)
+PEECAI_API_KEY=xxx npm run test:integration
+
+# Full CRUD round-trip (requires a test project + write access)
+PEECAI_ALLOW_WRITES=true PEECAI_TEST_PROJECT_ID=or_xxx npm run test:integration
 ```
 
 ### Project Structure
 
 ```
 src/
-├── index.ts          # Server entry point, tool registration
-├── api-client.ts     # HTTP client for Peec AI Customer API
-├── types.ts          # TypeScript interfaces for API responses
-├── util.ts           # Shared validation, date handling, MCP response helpers
-├── prompts.ts        # MCP prompt templates (guided workflows)
-└── tools/            # One file per MCP tool
-    ├── projects.ts
-    ├── brands.ts
-    ├── prompts.ts
-    ├── tags.ts
-    ├── topics.ts
-    ├── models.ts
-    ├── chats.ts
-    ├── chat-content.ts
-    ├── report-brands.ts
-    ├── report-domains.ts
-    ├── report-urls.ts
-    ├── queries-search.ts
-    └── queries-shopping.ts
-scripts/              # Development and CI scripts
-└── check-api-drift.sh
-api-spec/             # API specification snapshots
-└── openapi-snapshot.json
+├── index.ts              # Server entry point, tool/resource/prompt registration
+├── api-client.ts         # HTTP client for Peec AI Customer API
+├── types.ts              # TypeScript interfaces for API responses
+├── schemas.ts            # Zod output schemas for structured content
+├── util.ts               # Validation, date handling, MCP response helpers
+├── prompts.ts            # MCP prompt templates (guided workflows)
+└── tools/                # One file per MCP tool (or tool group)
+    ├── projects.ts       # list_projects
+    ├── brands.ts         # list_brands
+    ├── prompts.ts        # list_prompts
+    ├── tags.ts           # list_tags
+    ├── topics.ts         # list_topics
+    ├── models.ts         # list_models
+    ├── chats.ts          # list_chats
+    ├── chat-content.ts   # get_chat_content
+    ├── prompt-suggestions.ts  # list_prompt_suggestions
+    ├── topic-suggestions.ts   # list_topic_suggestions
+    ├── report-brands.ts  # get_brands_report
+    ├── report-domains.ts # get_domains_report
+    ├── report-urls.ts    # get_urls_report
+    ├── queries-search.ts # search_queries
+    ├── queries-shopping.ts    # shopping_queries
+    ├── write-brands.ts   # create/update/delete brand
+    ├── write-prompts.ts  # create/update/delete prompt
+    ├── write-tags.ts     # create/update/delete tag
+    ├── write-topics.ts   # create/update/delete topic
+    └── suggestion-actions.ts  # accept/reject suggestions
 ```
 
 ## License
