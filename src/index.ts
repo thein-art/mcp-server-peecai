@@ -16,6 +16,7 @@ import { registerPromptsTool } from "./tools/prompts.js";
 import { registerTagsTool } from "./tools/tags.js";
 import { registerTopicsTool } from "./tools/topics.js";
 import { registerModelsTool } from "./tools/models.js";
+import { registerModelChannelsTool } from "./tools/model-channels.js";
 import { registerChatsTool } from "./tools/chats.js";
 import { registerChatContentTool } from "./tools/chat-content.js";
 import { registerBrandsReportTool } from "./tools/report-brands.js";
@@ -31,7 +32,7 @@ import { registerWriteTagsTools } from "./tools/write-tags.js";
 import { registerWriteTopicsTools } from "./tools/write-topics.js";
 import { registerSuggestionActionTools } from "./tools/suggestion-actions.js";
 import { registerPromptTemplates } from "./prompts.js";
-import type { Brand, Model, Prompt, Project, Tag, Topic } from "./types.js";
+import type { Brand, Model, ModelChannel, Prompt, Project, Tag, Topic } from "./types.js";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -87,6 +88,7 @@ registerPromptsTool(server, client);
 registerTagsTool(server, client);
 registerTopicsTool(server, client);
 registerModelsTool(server, client);
+registerModelChannelsTool(server, client);
 registerChatsTool(server, client);
 registerChatContentTool(server, client);
 registerBrandsReportTool(server, client);
@@ -141,6 +143,7 @@ const dimensionResources: Array<{
   { name: "tags", title: "Tags", endpoint: "/tags", description: "Category tags for a project." },
   { name: "topics", title: "Topics", endpoint: "/topics", description: "Topic groupings for a project." },
   { name: "models", title: "AI Models", endpoint: "/models", description: "AI models tracked by Peec AI for a project." },
+  { name: "model-channels", title: "Model Channels", endpoint: "/model-channels", description: "Model channels (stable identifiers grouping one or more models) for a project." },
   { name: "prompts", title: "Prompts", endpoint: "/prompts", description: "Search prompts monitored across AI models for a project." },
 ];
 
@@ -166,7 +169,7 @@ for (const { name, title, endpoint, description } of dimensionResources) {
     { title, description, mimeType: "application/json" },
     async (uri, { project_id }) => {
       try {
-        const data = await client.get<(Brand | Tag | Topic | Model | Prompt)[]>(endpoint, {
+        const data = await client.get<(Brand | Tag | Topic | Model | ModelChannel | Prompt)[]>(endpoint, {
           project_id: String(project_id),
           limit: 10000,
         });

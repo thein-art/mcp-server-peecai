@@ -4,7 +4,7 @@ import { PeecApiClient } from "../api-client.js";
 import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, validateDateRange, slimReportRows, summaryForUrlsReport, toolResult, toolError } from "../util.js";
 import type { UrlReportRow } from "../types.js";
 
-const URLS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code"] as const;
+const URLS_FILTER_FIELDS = ["model_id", "model_channel_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code", "chat_id", "gap", "mentioned_brand_id", "mentioned_brand_count"] as const;
 
 /** Registers the get_urls_report tool for URL classification, usage, and citation analytics. */
 export function registerUrlsReportTool(server: McpServer, client: PeecApiClient) {

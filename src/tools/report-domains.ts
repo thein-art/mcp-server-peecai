@@ -4,7 +4,7 @@ import { PeecApiClient } from "../api-client.js";
 import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, validateDateRange, slimReportRows, summaryForDomainsReport, toolResult, toolError } from "../util.js";
 import type { DomainReportRow } from "../types.js";
 
-const DOMAINS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code"] as const;
+const DOMAINS_FILTER_FIELDS = ["model_id", "model_channel_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code", "chat_id", "gap", "mentioned_brand_id", "mentioned_brand_count"] as const;
 
 /** Registers the get_domains_report tool for domain classification, usage, and citation analytics. */
 export function registerDomainsReportTool(server: McpServer, client: PeecApiClient) {

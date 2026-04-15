@@ -4,7 +4,7 @@ import { PeecApiClient } from "../api-client.js";
 import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, mergeFilters, validateDateRange, slimReportRows, summaryForBrandsReport, toolResult, toolError } from "../util.js";
 import type { BrandReportRow } from "../types.js";
 
-const BRANDS_FILTER_FIELDS = ["model_id", "tag_id", "topic_id", "prompt_id", "brand_id", "country_code"] as const;
+const BRANDS_FILTER_FIELDS = ["model_id", "model_channel_id", "tag_id", "topic_id", "prompt_id", "brand_id", "country_code", "chat_id"] as const;
 
 /** Registers the get_brands_report tool for brand visibility, sentiment, and position analytics. */
 export function registerBrandsReportTool(server: McpServer, client: PeecApiClient) {

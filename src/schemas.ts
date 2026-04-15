@@ -51,7 +51,15 @@ export const chatSchema = z.object({
   id: z.string(),
   prompt: dimensionRefSchema,
   model: dimensionRefSchema,
+  model_channel: dimensionRefSchema.optional(),
   date: z.string(),
+});
+
+export const modelChannelSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  current_model: dimensionRefSchema,
+  is_active: z.boolean(),
 });
 
 export const promptSuggestionSchema = z.object({
@@ -107,6 +115,7 @@ export const promptsOutput = { _summary: summaryField, prompts: z.array(promptSc
 export const tagsOutput = { _summary: summaryField, tags: z.array(tagSchema) };
 export const topicsOutput = { _summary: summaryField, topics: z.array(topicSchema) };
 export const modelsOutput = { _summary: summaryField, models: z.array(modelSchema) };
+export const modelChannelsOutput = { _summary: summaryField, model_channels: z.array(modelChannelSchema) };
 export const chatsOutput = { _summary: summaryField, chats: z.array(chatSchema) };
 export const promptSuggestionsOutput = { _summary: summaryField, prompt_suggestions: z.array(promptSuggestionSchema) };
 export const topicSuggestionsOutput = { _summary: summaryField, topic_suggestions: z.array(topicSuggestionSchema) };

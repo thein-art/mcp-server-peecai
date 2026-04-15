@@ -77,11 +77,20 @@ export interface Model {
   is_active: boolean;
 }
 
+/** A model channel groups one or more underlying models under a stable identifier (e.g. openai-0, perplexity-0). */
+export interface ModelChannel {
+  id: string;
+  description: string;
+  current_model: DimensionRef;
+  is_active: boolean;
+}
+
 /** Summary of a single AI chat interaction. */
 export interface Chat {
   id: string;
   prompt: DimensionRef;
   model: DimensionRef;
+  model_channel?: DimensionRef;
   date: string;
 }
 
@@ -135,6 +144,7 @@ export interface BrandReportRow {
   brand: { id: string; name: string };
   prompt?: DimensionRef;
   model?: DimensionRef;
+  model_channel?: DimensionRef;
   tag?: DimensionRef;
   topic?: DimensionRef;
   /** Ratio 0–1: visibility_count / visibility_total. */
@@ -188,6 +198,7 @@ export interface DomainReportRow {
   classification: DomainClassification | null;
   prompt?: DimensionRef;
   model?: DimensionRef;
+  model_channel?: DimensionRef;
   tag?: DimensionRef;
   topic?: DimensionRef;
   /** Share of chats that retrieved this domain (0–1). */
@@ -213,6 +224,7 @@ export interface UrlReportRow {
   title: string | null;
   prompt?: DimensionRef;
   model?: DimensionRef;
+  model_channel?: DimensionRef;
   tag?: DimensionRef;
   topic?: DimensionRef;
   /** Total citation count across all chats. */

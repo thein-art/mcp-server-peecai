@@ -52,9 +52,9 @@ export const dateSchema = z
  * tag_id (by category tag), topic_id (by topic group).
  */
 export const dimensionsSchema = z
-  .array(z.enum(["prompt_id", "model_id", "tag_id", "topic_id", "date", "country_code"]))
+  .array(z.enum(["prompt_id", "model_id", "model_channel_id", "tag_id", "topic_id", "date", "country_code", "chat_id"]))
   .describe(
-    "Breakdown dimensions. Each adds a grouping level to results: prompt_id (by search prompt), model_id (by AI model, e.g. ChatGPT/Perplexity), tag_id (by category tag), topic_id (by topic group), date (by date), country_code (by country). Multiple dimensions can be combined."
+    "Breakdown dimensions. Each adds a grouping level to results: prompt_id (by search prompt), model_id (by AI model), model_channel_id (by model channel, e.g. openai-0/perplexity-0), tag_id (by category tag), topic_id (by topic group), date (by date), country_code (by country), chat_id (by individual chat). Multiple dimensions can be combined."
   );
 
 const PROJECT_ID_PATTERN = /^or_[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/;
@@ -122,7 +122,7 @@ export function validateDateRange(
   };
 }
 
-const DIMENSION_KEYS = ["prompt", "model", "tag", "topic"] as const;
+const DIMENSION_KEYS = ["prompt", "model", "model_channel", "tag", "topic"] as const;
 
 const BRAND_RAW_FIELDS = new Set([
   "visibility_count",

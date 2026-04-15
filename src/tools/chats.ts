@@ -19,13 +19,14 @@ export function registerChatsTool(server: McpServer, client: PeecApiClient) {
         brand_id: z.string().describe("Filter by brand ID. Use list_brands to find IDs.").optional(),
         prompt_id: z.string().describe("Filter by prompt ID. Use list_prompts to find IDs.").optional(),
         model_id: z.string().describe("Filter by model ID. Use list_models to find IDs.").optional(),
+        model_channel_id: z.string().describe("Filter by model channel ID (e.g. openai-0, perplexity-0). Use list_model_channels to find IDs.").optional(),
         limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)").optional(),
         offset: z.number().min(0).default(0).describe("Results to skip").optional(),
       },
       outputSchema: chatsOutput,
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ project_id, start_date, end_date, brand_id, prompt_id, model_id, limit, offset }, extra) => {
+    async ({ project_id, start_date, end_date, brand_id, prompt_id, model_id, model_channel_id, limit, offset }, extra) => {
       try {
         const dates = validateDateRange(start_date, end_date);
         const data = await client.get<Chat[]>("/chats", {
@@ -35,6 +36,7 @@ export function registerChatsTool(server: McpServer, client: PeecApiClient) {
           brand_id,
           prompt_id,
           model_id,
+          model_channel_id,
           limit,
           offset,
         }, extra.signal);
