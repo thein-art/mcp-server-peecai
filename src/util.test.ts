@@ -282,6 +282,7 @@ describe("slimReportRows", () => {
       brand: { id: "br_1", name: "Test" },
       prompt: { id: "pr_1" },
       model: { id: "mo_1" },
+      model_channel: { id: "openai-0" },
       tag: { id: "ta_1" },
       topic: { id: "to_1" },
       visibility: 0.5,
@@ -295,9 +296,11 @@ describe("slimReportRows", () => {
       brand_id: "br_1",
       prompt_id: "pr_1",
       model_id: "mo_1",
+      model_channel_id: "openai-0",
       tag_id: "ta_1",
       topic_id: "to_1",
     });
+    expect(result[0]).not.toHaveProperty("model_channel");
   });
 
   it("drops null classification from DomainReportRow", () => {

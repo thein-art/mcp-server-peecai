@@ -129,9 +129,13 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 - Returns: model IDs and active status
 - Parameters: `project_id`, `limit`, `offset`
 
+**`list_model_channels`** — List model channels (stable IDs grouping one or more models, e.g. `openai-0`, `perplexity-0`).
+- Returns: channel ID, description, currently active model, active status
+- Parameters: `project_id`, `limit`, `offset`
+
 **`list_chats`** — List AI chat interactions with optional date and dimension filtering.
-- Returns: chat IDs, prompt/model refs, dates
-- Parameters: `project_id`, `start_date`, `end_date`, `brand_id`, `prompt_id`, `model_id`, `limit`, `offset`
+- Returns: chat IDs, prompt/model/model_channel refs, dates
+- Parameters: `project_id`, `start_date`, `end_date`, `brand_id`, `prompt_id`, `model_id`, `model_channel_id`, `limit`, `offset`
 
 **`get_chat_content`** — Get full content of a specific chat.
 - Returns: sources (URLs, domains, citation counts), brands mentioned, messages, queries, products
@@ -145,7 +149,7 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 
 ### Analytics Reports
 
-All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `model_id`, `tag_id`, `topic_id`, `date`, `country_code`. Date filtering via `start_date` / `end_date` (YYYY-MM-DD). Server-side filtering via `filters` parameter (`field`, `operator: "in" | "not_in"`, `values`).
+All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `model_id`, `model_channel_id`, `tag_id`, `topic_id`, `date`, `country_code`, `chat_id`. Date filtering via `start_date` / `end_date` (YYYY-MM-DD). Server-side filtering via `filters` parameter (`field`, `operator: "in" | "not_in"`, `values`).
 
 **`get_brands_report`** — Brand analytics per brand.
 
@@ -333,6 +337,7 @@ src/
     ├── tags.ts           # list_tags
     ├── topics.ts         # list_topics
     ├── models.ts         # list_models
+    ├── model-channels.ts # list_model_channels
     ├── chats.ts          # list_chats
     ├── chat-content.ts   # get_chat_content
     ├── prompt-suggestions.ts  # list_prompt_suggestions

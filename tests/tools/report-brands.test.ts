@@ -90,6 +90,20 @@ describe("get_brands_report tool", () => {
     expect(sentBody.filters).toHaveLength(2);
   });
 
+  it("accepts model_channel_id as a server-side filter field", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_brands_report");
+    const filters = [{ field: "model_channel_id", operator: "in", values: ["openai-0"] }];
+    await handler({ project_id: VALID_PID, filters, dimensions: ["model_channel_id"], limit: 100, offset: 0 }, mockExtra);
+
+    expect(postSpy).toHaveBeenCalledWith("/reports/brands", expect.objectContaining({
+      dimensions: ["model_channel_id"],
+      filters: [{ field: "model_channel_id", operator: "in", values: ["openai-0"] }],
+    }), undefined, expect.any(AbortSignal));
+  });
+
   it("returns error on API failure", async () => {
     const { client, server } = setup();
     vi.spyOn(client, "post").mockRejectedValue(new Error("Service unavailable"));

@@ -42,6 +42,23 @@ describe("list_chats tool", () => {
     expect(parsed.chats).toHaveLength(1);
   });
 
+  it("forwards model_channel_id to the /chats endpoint", async () => {
+    const { client, server } = setup();
+    const getSpy = vi.spyOn(client, "get").mockResolvedValue([]);
+
+    const handler = getHandler(server, "list_chats");
+    await handler({
+      project_id: VALID_PID,
+      model_channel_id: "openai-0",
+      limit: 100,
+      offset: 0,
+    }, mockExtra);
+
+    expect(getSpy).toHaveBeenCalledWith("/chats", expect.objectContaining({
+      model_channel_id: "openai-0",
+    }), expect.any(AbortSignal));
+  });
+
   it("returns error on API failure", async () => {
     const { client, server } = setup();
     vi.spyOn(client, "get").mockRejectedValue(new Error("Rate limited"));
