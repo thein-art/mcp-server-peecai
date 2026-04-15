@@ -16,6 +16,7 @@ import { registerPromptsTool } from "../../src/tools/prompts.js";
 import { registerTagsTool } from "../../src/tools/tags.js";
 import { registerTopicsTool } from "../../src/tools/topics.js";
 import { registerModelsTool } from "../../src/tools/models.js";
+import { registerModelChannelsTool } from "../../src/tools/model-channels.js";
 import { registerChatsTool } from "../../src/tools/chats.js";
 import { registerChatContentTool } from "../../src/tools/chat-content.js";
 import { registerBrandsReportTool } from "../../src/tools/report-brands.js";
@@ -71,6 +72,7 @@ describe.skipIf(!API_KEY)("integration smoke test", () => {
     registerTagsTool(server, client);
     registerTopicsTool(server, client);
     registerModelsTool(server, client);
+    registerModelChannelsTool(server, client);
     registerChatsTool(server, client);
     registerChatContentTool(server, client);
     registerBrandsReportTool(server, client);
@@ -147,6 +149,16 @@ describe.skipIf(!API_KEY)("integration smoke test", () => {
     expect(parsed.models.length).toBeGreaterThan(0);
     expect(parsed.models[0]).toHaveProperty("id");
     expect(parsed.models[0]).toHaveProperty("is_active");
+  });
+
+  it("list_model_channels", async () => {
+    const result = await getHandler(server, "list_model_channels")({ project_id: projectId, limit: 100, offset: 0 }, extra);
+    const parsed = assertToolSuccess(result);
+    expect(Array.isArray(parsed.model_channels)).toBe(true);
+    expect(parsed.model_channels.length).toBeGreaterThan(0);
+    expect(parsed.model_channels[0]).toHaveProperty("id");
+    expect(parsed.model_channels[0]).toHaveProperty("current_model");
+    expect(parsed.model_channels[0]).toHaveProperty("is_active");
   });
 
   it("list_chats", async () => {
