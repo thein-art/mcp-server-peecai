@@ -105,6 +105,19 @@ export const chatContentSchema = z.object({
   })),
 });
 
+export const urlContentSchema = z.object({
+  url: z.string(),
+  title: z.string().nullable(),
+  domain: z.string(),
+  channel_title: z.string().nullable(),
+  classification: z.enum(["UGC", "CORPORATE", "EDITORIAL", "INSTITUTIONAL", "OTHER", "REFERENCE", "COMPETITOR", "OWN"]).nullable(),
+  url_classification: z.enum(["HOMEPAGE", "CATEGORY_PAGE", "PRODUCT_PAGE", "LISTICLE", "COMPARISON", "PROFILE", "ALTERNATIVE", "DISCUSSION", "HOW_TO_GUIDE", "ARTICLE", "OTHER"]).nullable(),
+  content: z.string().nullable(),
+  content_length: z.number(),
+  truncated: z.boolean(),
+  content_updated_at: z.string().nullable(),
+});
+
 // ── Output wrapper schemas (for tool outputSchema) ──
 
 const summaryField = z.string().describe("Human-readable summary of the result");
@@ -120,3 +133,4 @@ export const chatsOutput = { _summary: summaryField, chats: z.array(chatSchema) 
 export const promptSuggestionsOutput = { _summary: summaryField, prompt_suggestions: z.array(promptSuggestionSchema) };
 export const topicSuggestionsOutput = { _summary: summaryField, topic_suggestions: z.array(topicSuggestionSchema) };
 export const chatContentOutput = { _summary: summaryField, chat: chatContentSchema };
+export const urlContentOutput = { _summary: summaryField, content: urlContentSchema };

@@ -22,7 +22,7 @@
 
 ## What it does
 
-Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 31 tools covering projects, brands, prompts, chats, query analysis, analytics reports, and full CRUD operations.
+Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 32 tools covering projects, brands, prompts, chats, query analysis, analytics reports, source content, and full CRUD operations.
 
 **Key capabilities:**
 - Query brand visibility, sentiment, and position across AI models
@@ -106,7 +106,7 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 
 ## Tools
 
-### Data Retrieval (15 tools)
+### Data Retrieval (16 tools)
 
 **`list_projects`** — List all projects for the company.
 - Returns: project IDs, names, statuses (`CUSTOMER` = active, `PITCH` = demo)
@@ -178,6 +178,11 @@ All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `
 | `citation_rate` | Average citations per retrieval |
 | `classification` | `HOMEPAGE`, `PRODUCT_PAGE`, `CATEGORY_PAGE`, `LISTICLE`, `COMPARISON`, `ARTICLE`, `HOW_TO_GUIDE`, `PROFILE`, `ALTERNATIVE`, `DISCUSSION`, `OTHER` |
 
+**`get_url_content`** — Get the scraped markdown content of a source URL discovered via `get_urls_report`.
+- Returns: `content` (markdown, null while scraping pending), `title`, `domain`, `channel_title`, `classification`, `url_classification`, `content_length`, `truncated`, `content_updated_at`
+- Parameters: `url`, `project_id`, `max_length` (1–20,000,000, default 100,000)
+- If stored content exceeds `max_length`, `truncated=true` — re-request with a larger `max_length` to get more.
+
 ### Query Analysis
 
 **`search_queries`** — Get search queries AI models generated when answering prompts.
@@ -210,7 +215,7 @@ Delete operations are soft-deletes and **irreversible through the API**. Delete 
 
 | Tool type | Read-only | Idempotent | Destructive |
 |-----------|:---------:|:----------:|:-----------:|
-| All read tools (15) | Yes | Yes | No |
+| All read tools (16) | Yes | Yes | No |
 | Create (4) | No | No | No |
 | Update (4) | No | Yes | No |
 | Delete (4) | No | Yes | **Yes** |
@@ -302,7 +307,7 @@ No API key is required — the OpenAPI spec is publicly accessible.
 npm install              # Install dependencies
 npm run build            # Compile TypeScript to dist/
 npm run dev              # Watch mode — recompile on changes
-npm test                 # Run unit tests (358 tests)
+npm test                 # Run unit tests (372 tests)
 npm run test:watch       # Run tests in watch mode
 npm run test:integration # Run integration tests (requires PEECAI_API_KEY)
 npm run check:api-drift  # Check for API spec changes
@@ -313,7 +318,7 @@ npm run check:api-drift  # Check for API spec changes
 Integration tests hit the live Peec AI API and are skipped by default in `npm test`.
 
 ```bash
-# Read-only smoke test (all 15 read tools + prompts + resources)
+# Read-only smoke test (all 16 read tools + prompts + resources)
 PEECAI_API_KEY=xxx npm run test:integration
 
 # Full CRUD round-trip (requires a test project + write access)
@@ -345,6 +350,7 @@ src/
     ├── report-brands.ts  # get_brands_report
     ├── report-domains.ts # get_domains_report
     ├── report-urls.ts    # get_urls_report
+    ├── url-content.ts    # get_url_content
     ├── queries-search.ts # search_queries
     ├── queries-shopping.ts    # shopping_queries
     ├── write-brands.ts   # create/update/delete brand

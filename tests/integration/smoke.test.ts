@@ -22,6 +22,7 @@ import { registerChatContentTool } from "../../src/tools/chat-content.js";
 import { registerBrandsReportTool } from "../../src/tools/report-brands.js";
 import { registerDomainsReportTool } from "../../src/tools/report-domains.js";
 import { registerUrlsReportTool } from "../../src/tools/report-urls.js";
+import { registerUrlContentTool } from "../../src/tools/url-content.js";
 import { registerSearchQueriesTool } from "../../src/tools/queries-search.js";
 import { registerShoppingQueriesTool } from "../../src/tools/queries-shopping.js";
 import { registerPromptSuggestionsTool } from "../../src/tools/prompt-suggestions.js";
@@ -78,6 +79,7 @@ describe.skipIf(!API_KEY)("integration smoke test", () => {
     registerBrandsReportTool(server, client);
     registerDomainsReportTool(server, client);
     registerUrlsReportTool(server, client);
+    registerUrlContentTool(server, client);
     registerSearchQueriesTool(server, client);
     registerShoppingQueriesTool(server, client);
     registerPromptSuggestionsTool(server, client);
@@ -233,6 +235,8 @@ describe.skipIf(!API_KEY)("integration smoke test", () => {
     }
   }, 30_000);
 
+  let firstUrl: string | undefined;
+
   it("get_urls_report", async () => {
     const result = await getHandler(server, "get_urls_report")({ project_id: projectId, limit: 10, offset: 0 }, extra);
     const parsed = assertToolSuccess(result);
@@ -240,7 +244,21 @@ describe.skipIf(!API_KEY)("integration smoke test", () => {
     if (parsed.rows.length > 0) {
       expect(parsed.rows[0]).toHaveProperty("url");
       expect(parsed.rows[0]).toHaveProperty("citation_count");
+      firstUrl = parsed.rows[0].url as string;
     }
+  }, 30_000);
+
+  it("get_url_content", async () => {
+    if (!firstUrl) {
+      console.error("  Skipping get_url_content — no URLs available from urls report");
+      return;
+    }
+    const result = await getHandler(server, "get_url_content")({ url: firstUrl, project_id: projectId, max_length: 1000 }, extra);
+    const parsed = assertToolSuccess(result);
+    expect(parsed.content).toHaveProperty("url", firstUrl);
+    expect(parsed.content).toHaveProperty("domain");
+    expect(parsed.content).toHaveProperty("content_length");
+    expect(parsed.content).toHaveProperty("truncated");
   }, 30_000);
 
   // ── Query tools ──
