@@ -22,7 +22,7 @@
 
 ## What it does
 
-Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 32 tools covering projects, brands, prompts, chats, query analysis, analytics reports, source content, and full CRUD operations.
+Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 33 tools covering projects, brands, prompts, chats, query analysis, analytics reports, source content, and full CRUD operations.
 
 **Key capabilities:**
 - Query brand visibility, sentiment, and position across AI models
@@ -106,7 +106,7 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 
 ## Tools
 
-### Data Retrieval (16 tools)
+### Data Retrieval (17 tools)
 
 **`list_projects`** — List all projects for the company.
 - Returns: project IDs, names, statuses (`CUSTOMER` = active, `PITCH` = demo)
@@ -215,7 +215,7 @@ Delete operations are soft-deletes and **irreversible through the API**. Delete 
 
 | Tool type | Read-only | Idempotent | Destructive |
 |-----------|:---------:|:----------:|:-----------:|
-| All read tools (16) | Yes | Yes | No |
+| All read tools (17) | Yes | Yes | No |
 | Create (4) | No | No | No |
 | Update (4) | No | Yes | No |
 | Delete (4) | No | Yes | **Yes** |
@@ -318,7 +318,7 @@ npm run check:api-drift  # Check for API spec changes
 Integration tests hit the live Peec AI API and are skipped by default in `npm test`.
 
 ```bash
-# Read-only smoke test (all 16 read tools + prompts + resources)
+# Read-only smoke test (all 17 read tools + prompts + resources)
 PEECAI_API_KEY=xxx npm run test:integration
 
 # Full CRUD round-trip (requires a test project + write access)
