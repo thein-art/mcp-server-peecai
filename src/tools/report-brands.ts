@@ -1,10 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, mergeFilters, validateDateRange, slimReportRows, summaryForBrandsReport, toolResult, toolError } from "../util.js";
+import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, mergeFilters, orderBySchema, validateDateRange, slimReportRows, summaryForBrandsReport, toolResult, toolError } from "../util.js";
 import type { BrandReportRow } from "../types.js";
 
 const BRANDS_FILTER_FIELDS = ["model_id", "model_channel_id", "tag_id", "topic_id", "prompt_id", "brand_id", "country_code", "chat_id"] as const;
+const BRANDS_ORDER_BY_FIELDS = ["visibility", "visibility_count", "mention_count", "sentiment", "position", "share_of_voice"] as const;
 
 /** Registers the get_brands_report tool for brand visibility, sentiment, and position analytics. */
 export function registerBrandsReportTool(server: McpServer, client: PeecApiClient) {
@@ -22,12 +23,13 @@ export function registerBrandsReportTool(server: McpServer, client: PeecApiClien
           .describe("Convenience filter for a single brand (converted to server-side filter). Use list_brands to find IDs.")
           .optional(),
         filters: filterSchema(BRANDS_FILTER_FIELDS).optional(),
+        order_by: orderBySchema(BRANDS_ORDER_BY_FIELDS).optional(),
         limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)"),
         offset: z.number().min(0).default(0).describe("Results to skip"),
       },
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ project_id, start_date, end_date, dimensions, brand_id, filters, limit, offset }, extra) => {
+    async ({ project_id, start_date, end_date, dimensions, brand_id, filters, order_by, limit, offset }, extra) => {
       try {
         const dates = validateDateRange(start_date, end_date);
         const body: Record<string, unknown> = {
@@ -41,6 +43,7 @@ export function registerBrandsReportTool(server: McpServer, client: PeecApiClien
 
         const merged = mergeFilters(filters, { field: "brand_id", value: brand_id });
         if (merged) body.filters = merged;
+        if (order_by && order_by.length > 0) body.order_by = order_by;
 
         if (extra._meta?.progressToken !== undefined) {
           await extra.sendNotification({ method: "notifications/progress", params: { progressToken: extra._meta.progressToken, progress: 0, total: 2, message: "Fetching brand report..." } });

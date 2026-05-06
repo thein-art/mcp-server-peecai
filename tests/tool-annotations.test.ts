@@ -48,7 +48,7 @@ const READ_TOOL_TITLES: Record<string, string> = {
   list_prompts: "List Prompts",
   list_tags: "List Tags",
   list_topics: "List Topics",
-  list_models: "List AI Models",
+  list_models: "List AI Models (deprecated)",
   list_chats: "List Chats",
   get_chat_content: "Get Chat Content",
   get_brands_report: "Brand Visibility Report",
@@ -79,8 +79,8 @@ const TOOLS_WITH_OUTPUT_SCHEMA = [
 const CREATE_TOOLS = ["create_brand", "create_prompt", "create_tag", "create_topic"];
 const UPDATE_TOOLS = ["update_brand", "update_prompt", "update_tag", "update_topic"];
 const DELETE_TOOLS = ["delete_brand", "delete_prompt", "delete_tag", "delete_topic"];
-const ACCEPT_TOOLS = ["accept_prompt_suggestion", "accept_topic_suggestion"];
-const REJECT_TOOLS = ["reject_prompt_suggestion", "reject_topic_suggestion"];
+const ACCEPT_TOOLS = ["accept_prompt_suggestion", "accept_topic_suggestion", "accept_brand_suggestion"];
+const REJECT_TOOLS = ["reject_prompt_suggestion", "reject_topic_suggestion", "reject_brand_suggestion"];
 const ALL_WRITE_TOOLS = [...CREATE_TOOLS, ...UPDATE_TOOLS, ...DELETE_TOOLS, ...ACCEPT_TOOLS, ...REJECT_TOOLS];
 
 function setupReadOnly() {
@@ -181,10 +181,10 @@ describe("read-only tool annotations", () => {
 });
 
 describe("write tool annotations", () => {
-  it("all 31 tools are registered when writes enabled", () => {
+  it("all 33 tools are registered when writes enabled", () => {
     const server = setupWithWrites();
     const registered = Object.keys((server as any)._registeredTools);
-    expect(registered).toHaveLength(31);
+    expect(registered).toHaveLength(33);
   });
 
   for (const toolName of ALL_WRITE_TOOLS) {

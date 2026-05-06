@@ -15,6 +15,7 @@ const WRITE_TOOL_NAMES = [
   "create_topic", "update_topic", "delete_topic",
   "accept_prompt_suggestion", "reject_prompt_suggestion",
   "accept_topic_suggestion", "reject_topic_suggestion",
+  "accept_brand_suggestion", "reject_brand_suggestion",
 ];
 
 function registerAllWriteTools(server: McpServer, client: PeecApiClient) {
@@ -37,12 +38,12 @@ describe("write tools gate", () => {
     }
   });
 
-  it("all 16 write tools are registered", () => {
+  it("all 18 write tools are registered", () => {
     const client = new PeecApiClient("test-key");
     const server = new McpServer({ name: "test", version: "0.0.1" });
     registerAllWriteTools(server, client);
 
     const registered = Object.keys((server as any)._registeredTools);
-    expect(registered).toHaveLength(16);
+    expect(registered).toHaveLength(18);
   });
 });

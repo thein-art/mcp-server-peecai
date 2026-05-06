@@ -346,12 +346,13 @@ describe("slimReportRows", () => {
     expect(result[0]).not.toHaveProperty("prompt");
   });
 
-  it("drops null title from UrlReportRow", () => {
+  it("drops null title and deprecated retrievals from UrlReportRow", () => {
     const input = [{
       url: "https://example.com/page",
       classification: "ARTICLE",
       title: null,
       citation_count: 10,
+      retrieval_count: 5,
       retrievals: 5,
       citation_rate: 2.0,
     }];
@@ -360,7 +361,7 @@ describe("slimReportRows", () => {
       url: "https://example.com/page",
       classification: "ARTICLE",
       citation_count: 10,
-      retrievals: 5,
+      retrieval_count: 5,
       citation_rate: 2.0,
     }]);
   });

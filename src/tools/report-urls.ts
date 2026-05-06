@@ -1,10 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, validateDateRange, slimReportRows, summaryForUrlsReport, toolResult, toolError } from "../util.js";
+import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, orderBySchema, validateDateRange, slimReportRows, summaryForUrlsReport, toolResult, toolError } from "../util.js";
 import type { UrlReportRow } from "../types.js";
 
-const URLS_FILTER_FIELDS = ["model_id", "model_channel_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code", "chat_id", "gap", "mentioned_brand_id", "mentioned_brand_count"] as const;
+const URLS_FILTER_FIELDS = ["model_id", "model_channel_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code", "chat_id", "gap", "mentioned_brand_id", "mentioned_brand_count", "domain_classification", "url_classification"] as const;
+const URLS_ORDER_BY_FIELDS = ["retrieval_count", "retrievals", "citation_count", "citation_rate"] as const;
 
 /** Registers the get_urls_report tool for URL classification, usage, and citation analytics. */
 export function registerUrlsReportTool(server: McpServer, client: PeecApiClient) {
@@ -22,12 +23,13 @@ export function registerUrlsReportTool(server: McpServer, client: PeecApiClient)
           .describe("Filter by URL classification (applied client-side after retrieval).")
           .optional(),
         filters: filterSchema(URLS_FILTER_FIELDS).optional(),
+        order_by: orderBySchema(URLS_ORDER_BY_FIELDS).optional(),
         limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)"),
         offset: z.number().min(0).default(0).describe("Results to skip"),
       },
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ project_id, start_date, end_date, dimensions, classification, filters, limit, offset }, extra) => {
+    async ({ project_id, start_date, end_date, dimensions, classification, filters, order_by, limit, offset }, extra) => {
       try {
         const dates = validateDateRange(start_date, end_date);
         const body: Record<string, unknown> = {
@@ -40,6 +42,7 @@ export function registerUrlsReportTool(server: McpServer, client: PeecApiClient)
         body.offset = offset;
 
         if (filters) body.filters = filters;
+        if (order_by && order_by.length > 0) body.order_by = order_by;
 
         if (extra._meta?.progressToken !== undefined) {
           await extra.sendNotification({ method: "notifications/progress", params: { progressToken: extra._meta.progressToken, progress: 0, total: 2, message: "Fetching URL report..." } });

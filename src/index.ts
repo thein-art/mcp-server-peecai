@@ -27,11 +27,13 @@ import { registerSearchQueriesTool } from "./tools/queries-search.js";
 import { registerShoppingQueriesTool } from "./tools/queries-shopping.js";
 import { registerPromptSuggestionsTool } from "./tools/prompt-suggestions.js";
 import { registerTopicSuggestionsTool } from "./tools/topic-suggestions.js";
+import { registerBrandSuggestionsTool } from "./tools/brand-suggestions.js";
 import { registerWriteBrandsTools } from "./tools/write-brands.js";
 import { registerWritePromptsTools } from "./tools/write-prompts.js";
 import { registerWriteTagsTools } from "./tools/write-tags.js";
 import { registerWriteTopicsTools } from "./tools/write-topics.js";
 import { registerSuggestionActionTools } from "./tools/suggestion-actions.js";
+import { registerProjectProfileTools } from "./tools/project-profile.js";
 import { registerPromptTemplates } from "./prompts.js";
 import type { Brand, Model, ModelChannel, Prompt, Project, Tag, Topic } from "./types.js";
 import { createRequire } from "node:module";
@@ -100,6 +102,8 @@ registerSearchQueriesTool(server, client);
 registerShoppingQueriesTool(server, client);
 registerPromptSuggestionsTool(server, client);
 registerTopicSuggestionsTool(server, client);
+registerBrandSuggestionsTool(server, client);
+registerProjectProfileTools(server, client, allowWrites);
 
 // Register write tools (gated by PEECAI_ALLOW_WRITES)
 if (allowWrites) {

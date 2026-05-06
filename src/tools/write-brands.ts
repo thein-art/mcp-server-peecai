@@ -9,19 +9,20 @@ export function registerWriteBrandsTools(server: McpServer, client: PeecApiClien
     "create_brand",
     {
       title: "Create Brand",
-      description: "Create a new brand within a Peec AI project. Requires a brand name; optionally provide aliases, domains, and regex pattern.",
+      description: "Create a new brand within a Peec AI project. Requires a brand name; optionally provide aliases, domains, regex pattern, and color.",
       inputSchema: {
         project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
         name: z.string().min(1).describe("Brand name"),
         aliases: z.array(z.string()).describe("Alternative names for the brand").optional(),
         domains: z.array(z.string()).describe("Associated domain names").optional(),
         regex: z.string().describe("Custom regex pattern for brand detection").optional(),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a hex color like #1A2B3C").describe("Hex color for brand visualization (e.g. #3b82f6)").optional(),
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
-    async ({ project_id, name, aliases, domains, regex }, extra) => {
+    async ({ project_id, name, aliases, domains, regex, color }, extra) => {
       try {
-        const result = await client.postRaw<{ id: string }>("/brands", { name, aliases, domains, regex }, { project_id: requireProjectId(project_id) }, extra.signal);
+        const result = await client.postRaw<{ id: string }>("/brands", { name, aliases, domains, regex, color }, { project_id: requireProjectId(project_id) }, extra.signal);
         return toolResult({ _summary: "Brand created", brand_id: result.id });
       } catch (e) {
         return toolError(e);
@@ -41,10 +42,11 @@ export function registerWriteBrandsTools(server: McpServer, client: PeecApiClien
         aliases: z.array(z.string()).describe("Updated aliases").optional(),
         domains: z.array(z.string()).describe("Updated domains").optional(),
         regex: z.string().nullable().describe("Updated regex (null to remove)").optional(),
+        color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a hex color like #1A2B3C").describe("Updated hex color (e.g. #3b82f6)").optional(),
       },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ brand_id, project_id, name, aliases, domains, regex }, extra) => {
+    async ({ brand_id, project_id, name, aliases, domains, regex, color }, extra) => {
       try {
         requireSafeId(brand_id, "brand_id");
         const body: Record<string, unknown> = {};
@@ -52,6 +54,7 @@ export function registerWriteBrandsTools(server: McpServer, client: PeecApiClien
         if (aliases !== undefined) body.aliases = aliases;
         if (domains !== undefined) body.domains = domains;
         if (regex !== undefined) body.regex = regex;
+        if (color !== undefined) body.color = color;
         await client.patchRaw("/brands/" + encodeURIComponent(brand_id), body, { project_id: requireProjectId(project_id) }, extra.signal);
         return toolResult({ _summary: "Brand updated", brand_id });
       } catch (e) {

@@ -20,6 +20,17 @@ export function filterSchema(allowedFields: readonly string[]) {
   })).describe("Server-side filters. Multiple filters are AND'd together.");
 }
 
+/**
+ * Creates a Zod schema for server-side report ordering.
+ * Each entry is `{ field, direction? }`. Multiple entries form a multi-key sort.
+ */
+export function orderBySchema(allowedFields: readonly string[]) {
+  return z.array(z.object({
+    field: z.enum(allowedFields as [string, ...string[]]),
+    direction: z.enum(["asc", "desc"]).default("desc").optional(),
+  })).describe("Sort results by one or more fields. Direction defaults to desc.");
+}
+
 /** Merges convenience shortcut parameters into a filters array. Skips shortcuts whose field already exists in filters. */
 export function mergeFilters(
   filters: ReportFilter[] | undefined,
@@ -137,6 +148,7 @@ const DEPRECATED_FIELDS = new Set([
   "usage_rate",
   "citation_avg",
   "usage_count",
+  "retrievals",
 ]);
 
 /**

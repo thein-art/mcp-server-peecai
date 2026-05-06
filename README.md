@@ -22,7 +22,7 @@
 
 ## What it does
 
-Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 33 tools covering projects, brands, prompts, chats, query analysis, analytics reports, source content, and full CRUD operations.
+Peec AI tracks how brands appear in AI-generated answers. This MCP server gives any MCP-compatible client direct access to that data — 38 tools covering projects, brands, prompts, chats, query analysis, analytics reports, source content, brand profiles, and full CRUD operations.
 
 **Key capabilities:**
 - Query brand visibility, sentiment, and position across AI models
@@ -106,7 +106,7 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 
 ## Tools
 
-### Data Retrieval (17 tools)
+### Data Retrieval (19 tools)
 
 **`list_projects`** — List all projects for the company.
 - Returns: project IDs, names, statuses (`CUSTOMER` = active, `PITCH` = demo)
@@ -125,7 +125,7 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 **`list_topics`** — List topic groupings for a project.
 - Parameters: `project_id`, `limit`, `offset`
 
-**`list_models`** — List tracked AI models (ChatGPT, Perplexity, etc.).
+**`list_models`** — *Deprecated; prefer `list_model_channels`.* List tracked AI models (ChatGPT, Perplexity, etc.).
 - Returns: model IDs and active status
 - Parameters: `project_id`, `limit`, `offset`
 
@@ -147,6 +147,14 @@ Confirm the `peecai` server is connected — in Claude Code run `/mcp`, in VS Co
 **`list_topic_suggestions`** — List AI-generated topic suggestions.
 - Parameters: `project_id`, `limit`, `offset`
 
+**`list_brand_suggestions`** — List AI-generated brand suggestions.
+- Returns: suggestion ID, name, domains, chat_count
+- Parameters: `project_id`, `limit`, `offset`
+
+**`get_project_profile`** — Read the project's brand profile (occupation, industry, brand identity, target markets, audience distribution).
+- Returns: `profile` object or `null` if not yet profiled
+- Parameters: `project_id`
+
 ### Analytics Reports
 
 All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `model_id`, `model_channel_id`, `tag_id`, `topic_id`, `date`, `country_code`, `chat_id`. Date filtering via `start_date` / `end_date` (YYYY-MM-DD). Server-side filtering via `filters` parameter (`field`, `operator: "in" | "not_in"`, `values`).
@@ -167,13 +175,13 @@ All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `
 |--------|-------------|
 | `retrieval_rate` | Share of chats retrieving this domain (0–1) |
 | `citation_rate` | Average citations per retrieval |
-| `classification` | `OWN`, `CORPORATE`, `COMPETITOR`, `EDITORIAL`, `REFERENCE`, `INSTITUTIONAL`, `UGC`, `OTHER` |
+| `classification` | `OWN`, `CORPORATE`, `COMPETITOR`, `RELATED`, `EDITORIAL`, `REFERENCE`, `INSTITUTIONAL`, `UGC`, `OTHER` |
 
 **`get_urls_report`** — URL-level analytics.
 
 | Metric | Description |
 |--------|-------------|
-| `retrievals` | Number of chats retrieving this URL |
+| `retrieval_count` | Number of chats retrieving this URL (replaces deprecated `retrievals`) |
 | `citation_count` | Total citations across all chats |
 | `citation_rate` | Average citations per retrieval |
 | `classification` | `HOMEPAGE`, `PRODUCT_PAGE`, `CATEGORY_PAGE`, `LISTICLE`, `COMPARISON`, `ARTICLE`, `HOW_TO_GUIDE`, `PROFILE`, `ALTERNATIVE`, `DISCUSSION`, `OTHER` |
@@ -191,7 +199,7 @@ All report tools support `dimensions` for multi-level breakdowns: `prompt_id`, `
 **`shopping_queries`** — Get shopping/product queries AI models generated.
 - Parameters: `project_id`, `start_date`, `end_date`, `filters`, `limit`, `offset`
 
-### Write Operations (16 tools, opt-in)
+### Write Operations (19 tools, opt-in)
 
 Write tools are **disabled by default** for safety. Enable them by setting `PEECAI_ALLOW_WRITES=true`.
 
@@ -208,6 +216,9 @@ When disabled, these tools are completely invisible — they don't appear in `to
 |-------------|--------|--------|
 | Prompt suggestions | `accept_prompt_suggestion` | `reject_prompt_suggestion` |
 | Topic suggestions | `accept_topic_suggestion` | `reject_topic_suggestion` |
+| Brand suggestions | `accept_brand_suggestion` | `reject_brand_suggestion` |
+
+**`set_project_profile`** — Replace the project's brand profile (occupation, industry, brand identity, target markets, audience distribution). Full overwrite; `audienceDistribution` percentages must sum to 100. Triggers a background refresh of prompt suggestions.
 
 Delete operations are soft-deletes and **irreversible through the API**. Delete tools carry `destructiveHint: true` in their MCP annotations, causing clients like Claude Code to require explicit user approval before execution.
 
@@ -215,12 +226,13 @@ Delete operations are soft-deletes and **irreversible through the API**. Delete 
 
 | Tool type | Read-only | Idempotent | Destructive |
 |-----------|:---------:|:----------:|:-----------:|
-| All read tools (17) | Yes | Yes | No |
+| All read tools (19) | Yes | Yes | No |
 | Create (4) | No | No | No |
 | Update (4) | No | Yes | No |
 | Delete (4) | No | Yes | **Yes** |
-| Accept suggestion (2) | No | No | No |
-| Reject suggestion (2) | No | Yes | No |
+| Accept suggestion (3) | No | No | No |
+| Reject suggestion (3) | No | Yes | No |
+| `set_project_profile` (1) | No | Yes | **Yes** |
 
 ## Resources
 
@@ -318,7 +330,7 @@ npm run check:api-drift  # Check for API spec changes
 Integration tests hit the live Peec AI API and are skipped by default in `npm test`.
 
 ```bash
-# Read-only smoke test (all 17 read tools + prompts + resources)
+# Read-only smoke test (all 19 read tools + prompts + resources)
 PEECAI_API_KEY=xxx npm run test:integration
 
 # Full CRUD round-trip (requires a test project + write access)
@@ -347,6 +359,8 @@ src/
     ├── chat-content.ts   # get_chat_content
     ├── prompt-suggestions.ts  # list_prompt_suggestions
     ├── topic-suggestions.ts   # list_topic_suggestions
+    ├── brand-suggestions.ts   # list_brand_suggestions
+    ├── project-profile.ts # get_project_profile, set_project_profile
     ├── report-brands.ts  # get_brands_report
     ├── report-domains.ts # get_domains_report
     ├── report-urls.ts    # get_urls_report

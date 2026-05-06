@@ -17,6 +17,16 @@ export const brandSchema = z.object({
   name: z.string(),
   domains: z.array(z.string()).optional(),
   is_own: z.boolean(),
+  aliases: z.array(z.string()).optional(),
+  color: z.string().optional(),
+  source: z.enum(["manual", "suggestion", "onboarding"]).optional(),
+});
+
+export const brandSuggestionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  domains: z.array(z.string()),
+  chat_count: z.number(),
 });
 
 const dimensionRefSchema = z.object({ id: z.string() });
@@ -60,6 +70,7 @@ export const modelChannelSchema = z.object({
   description: z.string(),
   current_model: dimensionRefSchema,
   is_active: z.boolean(),
+  unsupported_country_codes: z.array(z.string()).default([]),
 });
 
 export const promptSuggestionSchema = z.object({
@@ -110,7 +121,7 @@ export const urlContentSchema = z.object({
   title: z.string().nullable(),
   domain: z.string(),
   channel_title: z.string().nullable(),
-  classification: z.enum(["UGC", "CORPORATE", "EDITORIAL", "INSTITUTIONAL", "OTHER", "REFERENCE", "COMPETITOR", "OWN"]).nullable(),
+  classification: z.enum(["UGC", "CORPORATE", "EDITORIAL", "INSTITUTIONAL", "OTHER", "REFERENCE", "COMPETITOR", "OWN", "RELATED"]).nullable(),
   url_classification: z.enum(["HOMEPAGE", "CATEGORY_PAGE", "PRODUCT_PAGE", "LISTICLE", "COMPARISON", "PROFILE", "ALTERNATIVE", "DISCUSSION", "HOW_TO_GUIDE", "ARTICLE", "OTHER"]).nullable(),
   content: z.string().nullable(),
   content_length: z.number(),
@@ -132,5 +143,27 @@ export const modelChannelsOutput = { _summary: summaryField, model_channels: z.a
 export const chatsOutput = { _summary: summaryField, chats: z.array(chatSchema) };
 export const promptSuggestionsOutput = { _summary: summaryField, prompt_suggestions: z.array(promptSuggestionSchema) };
 export const topicSuggestionsOutput = { _summary: summaryField, topic_suggestions: z.array(topicSuggestionSchema) };
+export const brandSuggestionsOutput = { _summary: summaryField, brand_suggestions: z.array(brandSuggestionSchema) };
+
+export const projectProfileSchema = z.object({
+  occupation: z.string(),
+  industry: z.string(),
+  brandPresentation: z.array(z.string()),
+  productsAndServices: z.array(z.string()),
+  targetMarkets: z.array(z.object({
+    marketSize: z.enum(["Neighborhood", "City", "State/Province", "National", "Continental Bloc", "Global"]),
+    location: z.string(),
+    osmId: z.string().optional(),
+  })),
+  audienceDistribution: z.object({
+    simpleRecommendationSeeker: z.number(),
+    informedShopper: z.number(),
+    evaluativeResearcher: z.number(),
+  }),
+  name: z.string().optional(),
+  usedPreparedProfile: z.boolean().optional(),
+});
+
+export const projectProfileOutput = { _summary: summaryField, profile: projectProfileSchema.nullable() };
 export const chatContentOutput = { _summary: summaryField, chat: chatContentSchema };
 export const urlContentOutput = { _summary: summaryField, content: urlContentSchema };

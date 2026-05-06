@@ -83,6 +83,19 @@ export class PeecApiClient {
     return response.json() as Promise<T>;
   }
 
+  /** PUT request that returns the response body directly. Use for full-replace endpoints without `data` envelope. */
+  async putRaw<T>(path: string, body: Record<string, unknown>, params?: Record<string, string | undefined>, signal?: AbortSignal): Promise<T> {
+    const response = await this.request(path, {
+      method: "PUT",
+      params,
+      body: JSON.stringify(body),
+      extraHeaders: { "Content-Type": "application/json" },
+      signal,
+    });
+    const text = await response.text();
+    return (text ? JSON.parse(text) : undefined) as T;
+  }
+
   /** DELETE request. Returns void — the API returns an empty body on success. */
   async delete(path: string, params?: Record<string, string | undefined>, signal?: AbortSignal): Promise<void> {
     await this.request(path, { method: "DELETE", params, signal });
@@ -91,7 +104,7 @@ export class PeecApiClient {
   private async request(
     path: string,
     options: {
-      method: "GET" | "POST" | "PATCH" | "DELETE";
+      method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
       params?: Record<string, string | number | undefined>;
       body?: string;
       extraHeaders?: Record<string, string>;

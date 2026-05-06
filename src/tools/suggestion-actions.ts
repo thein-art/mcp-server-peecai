@@ -3,7 +3,7 @@ import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
 import { requireProjectId, requireSafeId, toolResult, toolError } from "../util.js";
 
-/** Registers tools for accepting and rejecting prompt and topic suggestions. */
+/** Registers tools for accepting and rejecting prompt, topic, and brand suggestions. */
 export function registerSuggestionActionTools(server: McpServer, client: PeecApiClient) {
   server.registerTool(
     "accept_prompt_suggestion",
@@ -107,6 +107,60 @@ export function registerSuggestionActionTools(server: McpServer, client: PeecApi
           extra.signal,
         );
         return toolResult({ _summary: "Topic suggestion rejected" });
+      } catch (e) {
+        return toolError(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "accept_brand_suggestion",
+    {
+      title: "Accept Brand Suggestion",
+      description: "Accept a brand suggestion, converting it into a brand within the project.",
+      inputSchema: {
+        brand_suggestion_id: z.string().min(1).describe("Brand suggestion ID to accept"),
+        project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async ({ brand_suggestion_id, project_id }, extra) => {
+      try {
+        requireSafeId(brand_suggestion_id, "brand_suggestion_id");
+        const result = await client.postRaw<{ id: string }>(
+          "/brands/suggestions/" + encodeURIComponent(brand_suggestion_id) + "/accept",
+          {},
+          { project_id: requireProjectId(project_id) },
+          extra.signal,
+        );
+        return toolResult({ _summary: "Brand suggestion accepted", brand_id: result.id });
+      } catch (e) {
+        return toolError(e);
+      }
+    }
+  );
+
+  server.registerTool(
+    "reject_brand_suggestion",
+    {
+      title: "Reject Brand Suggestion",
+      description: "Reject a brand suggestion, removing it from the project and preventing it from being re-suggested.",
+      inputSchema: {
+        brand_suggestion_id: z.string().min(1).describe("Brand suggestion ID to reject"),
+        project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ brand_suggestion_id, project_id }, extra) => {
+      try {
+        requireSafeId(brand_suggestion_id, "brand_suggestion_id");
+        await client.postRaw(
+          "/brands/suggestions/" + encodeURIComponent(brand_suggestion_id) + "/reject",
+          {},
+          { project_id: requireProjectId(project_id) },
+          extra.signal,
+        );
+        return toolResult({ _summary: "Brand suggestion rejected" });
       } catch (e) {
         return toolError(e);
       }

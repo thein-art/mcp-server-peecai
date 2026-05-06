@@ -1,10 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { PeecApiClient } from "../api-client.js";
-import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, validateDateRange, slimReportRows, summaryForDomainsReport, toolResult, toolError } from "../util.js";
+import { requireProjectId, dateSchema, dimensionsSchema, filterSchema, orderBySchema, validateDateRange, slimReportRows, summaryForDomainsReport, toolResult, toolError } from "../util.js";
 import type { DomainReportRow } from "../types.js";
 
-const DOMAINS_FILTER_FIELDS = ["model_id", "model_channel_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code", "chat_id", "gap", "mentioned_brand_id", "mentioned_brand_count"] as const;
+const DOMAINS_FILTER_FIELDS = ["model_id", "model_channel_id", "tag_id", "topic_id", "prompt_id", "domain", "url", "country_code", "chat_id", "gap", "mentioned_brand_id", "mentioned_brand_count", "domain_classification"] as const;
+const DOMAINS_ORDER_BY_FIELDS = ["citation_rate", "retrieval_count", "citation_count"] as const;
 
 /** Registers the get_domains_report tool for domain classification, usage, and citation analytics. */
 export function registerDomainsReportTool(server: McpServer, client: PeecApiClient) {
@@ -18,16 +19,17 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
         start_date: dateSchema.describe("Start date (YYYY-MM-DD). Omit for no lower bound.").optional(),
         end_date: dateSchema.describe("End date (YYYY-MM-DD). Omit for no upper bound.").optional(),
         dimensions: dimensionsSchema.optional(),
-        classification: z.enum(["OWN", "CORPORATE", "COMPETITOR", "EDITORIAL", "REFERENCE", "INSTITUTIONAL", "UGC", "OTHER"])
+        classification: z.enum(["OWN", "CORPORATE", "COMPETITOR", "EDITORIAL", "REFERENCE", "INSTITUTIONAL", "UGC", "OTHER", "RELATED"])
           .describe("Filter by domain classification (applied client-side after retrieval).")
           .optional(),
         filters: filterSchema(DOMAINS_FILTER_FIELDS).optional(),
+        order_by: orderBySchema(DOMAINS_ORDER_BY_FIELDS).optional(),
         limit: z.number().min(1).max(10000).default(100).describe("Max results (1-10000, default: 100)"),
         offset: z.number().min(0).default(0).describe("Results to skip"),
       },
       annotations: { readOnlyHint: true, idempotentHint: true, destructiveHint: false, openWorldHint: false },
     },
-    async ({ project_id, start_date, end_date, dimensions, classification, filters, limit, offset }, extra) => {
+    async ({ project_id, start_date, end_date, dimensions, classification, filters, order_by, limit, offset }, extra) => {
       try {
         const dates = validateDateRange(start_date, end_date);
         const body: Record<string, unknown> = {
@@ -40,6 +42,7 @@ export function registerDomainsReportTool(server: McpServer, client: PeecApiClie
         body.offset = offset;
 
         if (filters) body.filters = filters;
+        if (order_by && order_by.length > 0) body.order_by = order_by;
 
         if (extra._meta?.progressToken !== undefined) {
           await extra.sendNotification({ method: "notifications/progress", params: { progressToken: extra._meta.progressToken, progress: 0, total: 2, message: "Fetching domain report..." } });

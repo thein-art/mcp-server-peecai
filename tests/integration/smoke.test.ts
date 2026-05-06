@@ -27,6 +27,8 @@ import { registerSearchQueriesTool } from "../../src/tools/queries-search.js";
 import { registerShoppingQueriesTool } from "../../src/tools/queries-shopping.js";
 import { registerPromptSuggestionsTool } from "../../src/tools/prompt-suggestions.js";
 import { registerTopicSuggestionsTool } from "../../src/tools/topic-suggestions.js";
+import { registerBrandSuggestionsTool } from "../../src/tools/brand-suggestions.js";
+import { registerProjectProfileTools } from "../../src/tools/project-profile.js";
 import { registerPromptTemplates } from "../../src/prompts.js";
 import type { Project, Brand, Chat } from "../../src/types.js";
 
@@ -84,6 +86,8 @@ describe.skipIf(!API_KEY)("integration smoke test", () => {
     registerShoppingQueriesTool(server, client);
     registerPromptSuggestionsTool(server, client);
     registerTopicSuggestionsTool(server, client);
+    registerBrandSuggestionsTool(server, client);
+    registerProjectProfileTools(server, client, false);
 
     // Resolve project ID — use env var or first active project
     if (process.env.PEECAI_PROJECT_ID) {
@@ -199,6 +203,23 @@ describe.skipIf(!API_KEY)("integration smoke test", () => {
     const result = await getHandler(server, "list_topic_suggestions")({ project_id: projectId, limit: 10, offset: 0 }, extra);
     const parsed = assertToolSuccess(result);
     expect(Array.isArray(parsed.topic_suggestions)).toBe(true);
+  });
+
+  it("list_brand_suggestions", async () => {
+    const result = await getHandler(server, "list_brand_suggestions")({ project_id: projectId, limit: 10, offset: 0 }, extra);
+    const parsed = assertToolSuccess(result);
+    expect(Array.isArray(parsed.brand_suggestions)).toBe(true);
+  });
+
+  it("get_project_profile", async () => {
+    const result = await getHandler(server, "get_project_profile")({ project_id: projectId }, extra);
+    const parsed = assertToolSuccess(result);
+    expect(parsed).toHaveProperty("profile");
+    if (parsed.profile !== null) {
+      expect(parsed.profile).toHaveProperty("occupation");
+      expect(parsed.profile).toHaveProperty("industry");
+      expect(parsed.profile).toHaveProperty("audienceDistribution");
+    }
   });
 
   // ── Report tools ──

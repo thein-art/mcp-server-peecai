@@ -12,7 +12,7 @@ export function registerWritePromptsTools(server: McpServer, client: PeecApiClie
       description: "Create a new search prompt to monitor across AI models. Requires prompt text and country code.",
       inputSchema: {
         project_id: z.string().min(1).describe("Project ID (uses PEECAI_PROJECT_ID env if omitted). Call list_projects to find IDs.").optional(),
-        text: z.string().min(1).max(200).describe("Prompt text (max 200 characters)"),
+        text: z.string().min(1).max(700).describe("Prompt text (max 700 characters)"),
         country_code: z.string().length(2).describe("ISO 3166-1 alpha-2 country code (e.g. US, DE)"),
         topic_id: z.string().describe("Topic ID to assign").optional(),
         tag_ids: z.array(z.string()).describe("Tag IDs to assign").optional(),
