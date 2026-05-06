@@ -104,6 +104,30 @@ describe("get_brands_report tool", () => {
     }), undefined, expect.any(AbortSignal));
   });
 
+  it("forwards order_by to API when provided", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_brands_report");
+    const order_by = [{ field: "visibility", direction: "desc" }];
+    await handler({ project_id: VALID_PID, order_by, limit: 100, offset: 0 }, mockExtra);
+
+    expect(postSpy).toHaveBeenCalledWith("/reports/brands", expect.objectContaining({
+      order_by: [{ field: "visibility", direction: "desc" }],
+    }), undefined, expect.any(AbortSignal));
+  });
+
+  it("omits order_by from body when empty array", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_brands_report");
+    await handler({ project_id: VALID_PID, order_by: [], limit: 100, offset: 0 }, mockExtra);
+
+    const sentBody = postSpy.mock.calls[0][1] as Record<string, unknown>;
+    expect(sentBody).not.toHaveProperty("order_by");
+  });
+
   it("returns error on API failure", async () => {
     const { client, server } = setup();
     vi.spyOn(client, "post").mockRejectedValue(new Error("Service unavailable"));

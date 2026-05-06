@@ -43,6 +43,21 @@ describe("create_brand tool", () => {
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Forbidden");
   });
+
+  it("forwards color in body when provided", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "postRaw").mockResolvedValue({ id: "br_new" });
+
+    const handler = getHandler(server, "create_brand");
+    await handler({ project_id: VALID_PID, name: "Acme", color: "#3b82f6" }, mockExtra);
+
+    expect(postSpy).toHaveBeenCalledWith(
+      "/brands",
+      expect.objectContaining({ color: "#3b82f6" }),
+      { project_id: VALID_PID },
+      expect.any(AbortSignal),
+    );
+  });
 });
 
 describe("update_brand tool", () => {
@@ -67,6 +82,21 @@ describe("update_brand tool", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toBe("Not Found");
+  });
+
+  it("forwards color in PATCH body when provided", async () => {
+    const { client, server } = setup();
+    const patchSpy = vi.spyOn(client, "patchRaw").mockResolvedValue({} as any);
+
+    const handler = getHandler(server, "update_brand");
+    await handler({ brand_id: "br_1", project_id: VALID_PID, color: "#1A2B3C" }, mockExtra);
+
+    expect(patchSpy).toHaveBeenCalledWith(
+      "/brands/br_1",
+      { color: "#1A2B3C" },
+      { project_id: VALID_PID },
+      expect.any(AbortSignal),
+    );
   });
 });
 

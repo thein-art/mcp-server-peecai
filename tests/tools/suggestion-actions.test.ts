@@ -117,3 +117,67 @@ describe("reject_topic_suggestion tool", () => {
     expect(result.content[0].text).toBe("Forbidden");
   });
 });
+
+describe("accept_brand_suggestion tool", () => {
+  it("returns brand_id and _summary on success", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "postRaw").mockResolvedValue({ id: "br_accepted" });
+
+    const handler = getHandler(server, "accept_brand_suggestion");
+    const result = await handler({ brand_suggestion_id: "bs_1", project_id: VALID_PID }, mockExtra);
+    const parsed = JSON.parse(result.content[0].text);
+
+    expect(parsed._summary).toBe("Brand suggestion accepted");
+    expect(parsed.brand_id).toBe("br_accepted");
+    expect(postSpy).toHaveBeenCalledWith(
+      "/brands/suggestions/bs_1/accept",
+      {},
+      { project_id: VALID_PID },
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("rejects unsafe brand_suggestion_id", async () => {
+    const { server } = setup();
+    const handler = getHandler(server, "accept_brand_suggestion");
+    const result = await handler({ brand_suggestion_id: "../bad", project_id: VALID_PID }, mockExtra);
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("Invalid brand_suggestion_id");
+  });
+
+  it("returns error on API failure", async () => {
+    const { client, server } = setup();
+    vi.spyOn(client, "postRaw").mockRejectedValue(new Error("Not Found"));
+
+    const handler = getHandler(server, "accept_brand_suggestion");
+    const result = await handler({ brand_suggestion_id: "bs_1", project_id: VALID_PID }, mockExtra);
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe("Not Found");
+  });
+});
+
+describe("reject_brand_suggestion tool", () => {
+  it("returns _summary on success", async () => {
+    const { client, server } = setup();
+    vi.spyOn(client, "postRaw").mockResolvedValue({});
+
+    const handler = getHandler(server, "reject_brand_suggestion");
+    const result = await handler({ brand_suggestion_id: "bs_1", project_id: VALID_PID }, mockExtra);
+    const parsed = JSON.parse(result.content[0].text);
+
+    expect(parsed._summary).toBe("Brand suggestion rejected");
+  });
+
+  it("returns error on API failure", async () => {
+    const { client, server } = setup();
+    vi.spyOn(client, "postRaw").mockRejectedValue(new Error("Forbidden"));
+
+    const handler = getHandler(server, "reject_brand_suggestion");
+    const result = await handler({ brand_suggestion_id: "bs_1", project_id: VALID_PID }, mockExtra);
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe("Forbidden");
+  });
+});

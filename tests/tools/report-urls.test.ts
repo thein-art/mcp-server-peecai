@@ -81,6 +81,47 @@ describe("get_urls_report tool", () => {
     }), undefined, expect.any(AbortSignal));
   });
 
+  it("accepts url_classification and domain_classification as filter fields", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_urls_report");
+    const filters = [
+      { field: "domain_classification", operator: "in", values: ["RELATED"] },
+      { field: "url_classification", operator: "in", values: ["LISTICLE"] },
+    ];
+    await handler({ project_id: VALID_PID, filters, limit: 100, offset: 0 }, mockExtra);
+
+    expect(postSpy).toHaveBeenCalledWith("/reports/urls", expect.objectContaining({ filters }), undefined, expect.any(AbortSignal));
+  });
+
+  it("forwards order_by to API when provided", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_urls_report");
+    const order_by = [{ field: "retrieval_count", direction: "desc" }];
+    await handler({ project_id: VALID_PID, order_by, limit: 100, offset: 0 }, mockExtra);
+
+    expect(postSpy).toHaveBeenCalledWith("/reports/urls", expect.objectContaining({
+      order_by: [{ field: "retrieval_count", direction: "desc" }],
+    }), undefined, expect.any(AbortSignal));
+  });
+
+  it("drops deprecated retrievals field from rows", async () => {
+    const { client, server } = setup();
+    vi.spyOn(client, "post").mockResolvedValue([
+      { url: "https://example.com/page", classification: "ARTICLE", title: null, citation_count: 10, retrieval_count: 5, retrievals: 5, citation_rate: 2.0 },
+    ]);
+
+    const handler = getHandler(server, "get_urls_report");
+    const result = await handler({ project_id: VALID_PID, limit: 100, offset: 0 }, mockExtra);
+    const parsed = JSON.parse(result.content[0].text);
+
+    expect(parsed.rows[0]).not.toHaveProperty("retrievals");
+    expect(parsed.rows[0].retrieval_count).toBe(5);
+  });
+
   it("returns error on API failure", async () => {
     const { client, server } = setup();
     vi.spyOn(client, "post").mockRejectedValue(new Error("Internal error"));

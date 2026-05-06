@@ -73,6 +73,48 @@ describe("get_domains_report tool", () => {
     }), undefined, expect.any(AbortSignal));
   });
 
+  it("accepts domain_classification as a server-side filter field", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_domains_report");
+    const filters = [{ field: "domain_classification", operator: "in", values: ["RELATED"] }];
+    await handler({ project_id: VALID_PID, filters, limit: 100, offset: 0 }, mockExtra);
+
+    expect(postSpy).toHaveBeenCalledWith("/reports/domains", expect.objectContaining({
+      filters: [{ field: "domain_classification", operator: "in", values: ["RELATED"] }],
+    }), undefined, expect.any(AbortSignal));
+  });
+
+  it("forwards order_by to API when provided", async () => {
+    const { client, server } = setup();
+    const postSpy = vi.spyOn(client, "post").mockResolvedValue([]);
+
+    const handler = getHandler(server, "get_domains_report");
+    const order_by = [{ field: "citation_rate", direction: "desc" }];
+    await handler({ project_id: VALID_PID, order_by, limit: 100, offset: 0 }, mockExtra);
+
+    expect(postSpy).toHaveBeenCalledWith("/reports/domains", expect.objectContaining({
+      order_by: [{ field: "citation_rate", direction: "desc" }],
+    }), undefined, expect.any(AbortSignal));
+  });
+
+  it("filters RELATED classification client-side", async () => {
+    const { client, server } = setup();
+    const apiData = [
+      { domain: "related.com", classification: "RELATED", retrieved_percentage: 0.4, retrieval_rate: 0.4, citation_rate: 1.5 },
+      { domain: "own.com", classification: "OWN", retrieved_percentage: 0.5, retrieval_rate: 0.5, citation_rate: 2.0 },
+    ];
+    vi.spyOn(client, "post").mockResolvedValue(apiData);
+
+    const handler = getHandler(server, "get_domains_report");
+    const result = await handler({ project_id: VALID_PID, classification: "RELATED", limit: 100, offset: 0 }, mockExtra);
+    const parsed = JSON.parse(result.content[0].text);
+
+    expect(parsed.rows).toHaveLength(1);
+    expect(parsed.rows[0].domain).toBe("related.com");
+  });
+
   it("returns error on API failure", async () => {
     const { client, server } = setup();
     vi.spyOn(client, "post").mockRejectedValue(new Error("Bad gateway"));
